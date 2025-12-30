@@ -187,11 +187,21 @@ Write-Host "Test 5: Checking error handling coverage..." -ForegroundColor Yellow
 
 $tryCount = ([regex]::Matches($scriptContent, '\btry\s*\{')).Count
 $catchCount = ([regex]::Matches($scriptContent, '\bcatch\s*\{')).Count
+$finallyCount = ([regex]::Matches($scriptContent, '\bfinally\s*\{')).Count
 
-if ($tryCount -eq $catchCount -and $tryCount -gt 100) {
-    Add-TestResult -TestName "Error Handling Coverage" -Passed $true -Message "$tryCount try-catch blocks found"
+# PowerShell allows try-catch, try-finally, and try-catch-finally
+# So: tryCount should equal (catchCount + try-finally-only blocks)
+# Or: tryCount should be >= catchCount (accounting for try-finally blocks)
+$isValid = ($tryCount -ge $catchCount) -and ($tryCount -gt 100)
+
+if ($isValid) {
+    $blockTypes = @()
+    if ($catchCount -gt 0) { $blockTypes += "$catchCount catch" }
+    if ($finallyCount -gt 0) { $blockTypes += "$finallyCount finally" }
+    $message = "$tryCount try blocks with $($blockTypes -join ', ')"
+    Add-TestResult -TestName "Error Handling Coverage" -Passed $true -Message $message
 } else {
-    Add-TestResult -TestName "Error Handling Coverage" -Passed $false -Message "Try: $tryCount, Catch: $catchCount (should match)"
+    Add-TestResult -TestName "Error Handling Coverage" -Passed $false -Message "Try: $tryCount, Catch: $catchCount (insufficient error handling)"
 }
 
 # Test 6: Admin Check Functions
