@@ -276,103 +276,100 @@ function Show-GUIMenu {
         [string[]]$Options,
         [string]$Prompt = "Select an option"
     )
-    
-    # Check if we're in GUI mode
-    $isNonInteractive = ($Host.Name -ne 'ConsoleHost' -and $Host.Name -ne 'Windows PowerShell ISE Host')
-    
-    # In GUI mode, functions run in runspaces where dialogs can't be shown
-    # If in runspace (GUI background execution), can't show dialogs - return default
-    if ($isNonInteractive) {
-        Write-Host ""
-        Write-Host "[INFO] Running in GUI background mode - interactive menu not available" -ForegroundColor Yellow
-        Write-Host "[INFO] Available options:" -ForegroundColor Cyan
-        for ($i = 0; $i -lt $Options.Count; $i++) {
-            Write-Host "  $($i + 1). $($Options[$i])" -ForegroundColor White
+
+    # Check if we're in GUI mode (background runspace)
+    $isGUIMode = ($Host.Name -ne 'ConsoleHost' -and $Host.Name -ne 'Windows PowerShell ISE Host')
+
+    if ($isGUIMode) {
+        # GUI mode - show Windows Forms dialog
+        try {
+            Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+            Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
+
+            # Create the form
+            $form = New-Object System.Windows.Forms.Form
+            $form.Text = $Title
+            $w = 450
+            $h = 150 + ($Options.Count * 35)
+            $form.Size = New-Object System.Drawing.Size($w, $h)
+            $form.StartPosition = "CenterScreen"
+            $form.FormBorderStyle = "FixedDialog"
+            $form.MaximizeBox = $false
+            $form.MinimizeBox = $false
+            $form.TopMost = $true
+
+            # Add prompt label
+            $label = New-Object System.Windows.Forms.Label
+            $label.Location = New-Object System.Drawing.Point(10, 10)
+            $label.Size = New-Object System.Drawing.Size(410, 30)
+            $label.Text = $Prompt
+            $label.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+            $form.Controls.Add($label)
+
+            # Add buttons for each option
+            $yPos = 50
+            for ($i = 0; $i -lt $Options.Count; $i++) {
+                $btn = New-Object System.Windows.Forms.Button
+                $btn.Text = "$($i + 1). $($Options[$i])"
+                $btn.Location = New-Object System.Drawing.Point(20, $yPos)
+                $btn.Size = New-Object System.Drawing.Size(390, 30)
+                $btn.Tag = ($i + 1).ToString()
+                $btn.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+                $btn.Add_Click({
+                    $form.Tag = $this.Tag
+                    $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
+                    $form.Close()
+                })
+                $form.Controls.Add($btn)
+                $yPos += 35
+            }
+
+            # Add Cancel/Skip button
+            $cancelBtn = New-Object System.Windows.Forms.Button
+            $cancelBtn.Text = "0. Cancel / Skip"
+            $cancelBtn.Location = New-Object System.Drawing.Point(20, $yPos)
+            $cancelBtn.Size = New-Object System.Drawing.Size(390, 30)
+            $cancelBtn.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+            $cancelBtn.Add_Click({
+                $form.Tag = "0"
+                $form.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+                $form.Close()
+            })
+            $form.Controls.Add($cancelBtn)
+
+            # Show the dialog and get result
+            $form.Add_Shown({$form.Activate()})
+            $result = $form.ShowDialog()
+
+            if ($form.Tag) {
+                return $form.Tag
+            }
+            return "0"
+        } catch {
+            # If dialog fails, fall back to console output with default
+            Write-Host ""
+            Write-Host "[WARNING] Could not show interactive dialog: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "[INFO] Available options:" -ForegroundColor Cyan
+            for ($i = 0; $i -lt $Options.Count; $i++) {
+                Write-Host "  $($i + 1). $($Options[$i])" -ForegroundColor White
+            }
+            Write-Host "[INFO] Defaulting to option 0 (Skip)" -ForegroundColor Yellow
+            return "0"
         }
-        Write-Host "[INFO] Defaulting to option 0 (Skip)" -ForegroundColor Yellow
-        return "0"
-    }
-    
-    if (-not $isNonInteractive) {
+    } else {
         # CLI mode - use Read-Host
         Write-Host ""
         Write-Host $Title -ForegroundColor Cyan
         for ($i = 0; $i -lt $Options.Count; $i++) {
             Write-Host "  $($i + 1). $($Options[$i])" -ForegroundColor White
         }
+        Write-Host "  0. Cancel / Skip" -ForegroundColor Gray
         Write-Host ""
         $choice = Read-Host $Prompt
+        if ([string]::IsNullOrWhiteSpace($choice)) {
+            return "0"
+        }
         return $choice
-    }
-    
-    # GUI mode (main thread) - show Windows Forms dialog
-    try {
-        Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
-        Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
-        
-        # Use [System.Drawing.Size]::new() syntax which is more reliable
-        $form = New-Object System.Windows.Forms.Form
-        $form.Text = $Title
-        $w = 400
-        $h = 200 + ($Options.Count * 35)
-        $form.Size = [System.Drawing.Size]::new($w, $h)
-        $form.StartPosition = "CenterScreen"
-        $form.FormBorderStyle = "FixedDialog"
-        $form.MaximizeBox = $false
-        $form.MinimizeBox = $false
-        
-        $label = New-Object System.Windows.Forms.Label
-        $label.Location = [System.Drawing.Point]::new(10, 10)
-        $label.Size = [System.Drawing.Size]::new(360, 20)
-        $label.Text = $Prompt
-        $form.Controls.Add($label)
-        
-        $buttons = @()
-        $yPos = 40
-        for ($i = 0; $i -lt $Options.Count; $i++) {
-            $btn = New-Object System.Windows.Forms.Button
-            $btn.Text = "$($i + 1). $($Options[$i])"
-            $btn.Location = [System.Drawing.Point]::new(10, $yPos)
-            $btn.Size = [System.Drawing.Size]::new(360, 30)
-            $btn.DialogResult = [System.Windows.Forms.DialogResult]::OK
-            $btn.Tag = ($i + 1).ToString()
-            $btn.Add_Click({
-                $form.Tag = $this.Tag
-                $form.Close()
-            })
-            $form.Controls.Add($btn)
-            $buttons += $btn
-            $yPos = $yPos + 35
-        }
-        
-        $cancelBtn = New-Object System.Windows.Forms.Button
-        $cancelBtn.Text = "Cancel (0)"
-        $cancelBtn.Location = [System.Drawing.Point]::new(10, $yPos)
-        $cancelBtn.Size = [System.Drawing.Size]::new(360, 30)
-        $cancelBtn.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-        $cancelBtn.Add_Click({
-            $form.Tag = "0"
-            $form.Close()
-        })
-        $form.Controls.Add($cancelBtn)
-        
-        $form.Add_Shown({$form.Activate()})
-        $null = $form.ShowDialog()
-        
-        if ($form.Tag) {
-            return $form.Tag
-        }
-        return "0"
-    } catch {
-        # If dialog fails, fall back to non-interactive
-        Write-Host ""
-        Write-Host "[WARNING] Could not show interactive dialog: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host "[INFO] Available options:" -ForegroundColor Cyan
-        for ($i = 0; $i -lt $Options.Count; $i++) {
-            Write-Host "  $($i + 1). $($Options[$i])" -ForegroundColor White
-        }
-        Write-Host "[INFO] Defaulting to option 0 (Skip)" -ForegroundColor Yellow
-        return "0"
     }
 }
 
@@ -381,33 +378,27 @@ function Show-GUIConfirm {
         [string]$Message,
         [string]$Title = "Confirm"
     )
-    
-    $isNonInteractive = ($Host.Name -ne 'ConsoleHost' -and $Host.Name -ne 'Windows PowerShell ISE Host')
-    
-    # In GUI mode, functions run in runspaces where dialogs can't be shown
-    # Just skip dialogs in GUI mode to avoid hanging
-    if ($isNonInteractive) {
-        Write-Host "[INFO] Running in GUI background mode - confirmation not available" -ForegroundColor Yellow
-        Write-Host "[INFO] Defaulting to 'No' for safety" -ForegroundColor Yellow
-        return $false
-    }
-    
-    if (-not $isNonInteractive) {
+
+    $isGUIMode = ($Host.Name -ne 'ConsoleHost' -and $Host.Name -ne 'Windows PowerShell ISE Host')
+
+    if ($isGUIMode) {
+        # GUI mode - show Windows Forms MessageBox
+        try {
+            Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+            $result = [System.Windows.Forms.MessageBox]::Show($Message, $Title,
+                [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                [System.Windows.Forms.MessageBoxIcon]::Question)
+
+            return ($result -eq [System.Windows.Forms.DialogResult]::Yes)
+        } catch {
+            Write-Host "[WARNING] Could not show confirmation dialog: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "[INFO] Defaulting to 'No' for safety" -ForegroundColor Yellow
+            return $false
+        }
+    } else {
+        # CLI mode - use Read-Host
         $response = Read-Host "$Message (Y/N)"
         return ($response -eq 'Y' -or $response -eq 'y')
-    }
-    
-    try {
-        Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
-        $result = [System.Windows.Forms.MessageBox]::Show($Message, $Title, 
-            [System.Windows.Forms.MessageBoxButtons]::YesNo, 
-            [System.Windows.Forms.MessageBoxIcon]::Question)
-        
-        return ($result -eq [System.Windows.Forms.DialogResult]::Yes)
-    } catch {
-        Write-Host "[WARNING] Could not show confirmation dialog: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host "[INFO] Defaulting to 'No' for safety" -ForegroundColor Yellow
-        return $false
     }
 }
 
@@ -416,31 +407,25 @@ function Show-GUIInput {
         [string]$Prompt,
         [string]$Title = "Input Required"
     )
-    
-    $isNonInteractive = ($Host.Name -ne 'ConsoleHost' -and $Host.Name -ne 'Windows PowerShell ISE Host')
-    
-    # In GUI mode, functions run in runspaces where dialogs can't be shown
-    # Just skip dialogs in GUI mode to avoid hanging
-    if ($isNonInteractive) {
-        Write-Host "[INFO] Running in GUI background mode - input not available" -ForegroundColor Yellow
-        Write-Host "[INFO] Returning empty input" -ForegroundColor Yellow
-        return ""
-    }
-    
-    if (-not $isNonInteractive) {
+
+    $isGUIMode = ($Host.Name -ne 'ConsoleHost' -and $Host.Name -ne 'Windows PowerShell ISE Host')
+
+    if ($isGUIMode) {
+        # GUI mode - show InputBox dialog
+        try {
+            Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+            Add-Type -AssemblyName Microsoft.VisualBasic -ErrorAction SilentlyContinue
+
+            $userInput = [Microsoft.VisualBasic.Interaction]::InputBox($Prompt, $Title, "")
+            return $userInput
+        } catch {
+            Write-Host "[WARNING] Could not show input dialog: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "[INFO] Returning empty input" -ForegroundColor Yellow
+            return ""
+        }
+    } else {
+        # CLI mode - use Read-Host
         return Read-Host $Prompt
-    }
-    
-    try {
-        Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
-        Add-Type -AssemblyName Microsoft.VisualBasic -ErrorAction SilentlyContinue
-        
-        $userInput = [Microsoft.VisualBasic.Interaction]::InputBox($Prompt, $Title, "")
-        return $userInput
-    } catch {
-        Write-Host "[WARNING] Could not show input dialog: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host "[INFO] Returning empty input" -ForegroundColor Yellow
-        return ""
     }
 }
 
