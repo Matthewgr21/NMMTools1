@@ -4570,8 +4570,8 @@ function Repair-DomainTrust {
     
     try {
         # Check if computer is domain-joined
-        $computerSystem = Get-WmiObject -Class Win32_ComputerSystem
-        
+        $computerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
+
         Write-Host ""
         Write-Host "Computer Information:" -ForegroundColor Yellow
         Write-Host "  Computer Name: $($computerSystem.Name)"
@@ -8581,7 +8581,7 @@ function Get-ThermalHealth {
         # Get CPU temperature (if available via WMI)
         $cpuTemp = $null
         try {
-            $temp = Get-WmiObject -Namespace "root\wmi" -Class "MSAcpi_ThermalZoneTemperature" -ErrorAction SilentlyContinue
+            $temp = Get-CimInstance -Namespace "root\wmi" -ClassName "MSAcpi_ThermalZoneTemperature" -ErrorAction SilentlyContinue
             if ($temp -and $temp.CurrentTemperature -and $temp.CurrentTemperature.Count -gt 0) {
                 $cpuTemp = ($temp.CurrentTemperature[0] / 10) - 273.15  # Convert from tenths of Kelvin to Celsius
             }
