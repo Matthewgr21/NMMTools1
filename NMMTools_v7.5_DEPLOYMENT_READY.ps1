@@ -92,11 +92,9 @@ function Request-AdminElevation {
         Write-Host "The tool '$ToolName' requires administrator privileges to function properly." -ForegroundColor White
         Write-Host ""
         Write-Host "Options:" -ForegroundColor Cyan
-        Write-Host "  1. Continue anyway (limited functionality)" -ForegroundColor Yellow
-        Write-Host "  2. Restart script as Administrator" -ForegroundColor Green
-        Write-Host "  3. Cancel and return to menu" -ForegroundColor Red
-        Write-Host ""
-        $choice = Read-Host "Select option (1-3)"
+        $choice = Show-GUIMenu -Title "Administrator Privileges Required" `
+            -Options @("Continue anyway (limited functionality)", "Restart script as Administrator", "Cancel and return to menu") `
+            -Prompt "Select option"
         
         switch ($choice) {
             '1' {
@@ -1303,12 +1301,9 @@ function Clear-CredentialManager {
         
         Write-Host "Found $credCount stored credentials"
         Write-Host ""
-        Write-Host "Credential Cleanup Options:"
-        Write-Host "  1. Clear Office 365 credentials only"
-        Write-Host "  2. View credential list"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select option (1-2, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Credential Cleanup Options" `
+            -Options @("Clear Office 365 credentials only", "View credential list") `
+            -Prompt "Select option"
         
         switch ($choice) {
             '1' {
@@ -1519,15 +1514,13 @@ function Invoke-ChkDskRepair {
         $drives | Format-Table DriveLetter, FileSystemLabel, FileSystem, HealthStatus
         
         Write-Host ""
-        $driveLetter = Read-Host "Enter drive letter to check (e.g. C)"
-        
+        $driveLetter = Show-GUIInput -Prompt "Enter drive letter to check (e.g. C)" -Title "ChkDsk Drive Selection"
+
         if ($driveLetter) {
             Write-Host ""
-            Write-Host "ChkDsk Options:" -ForegroundColor Yellow
-            Write-Host "  1. Quick scan (read-only)"
-            Write-Host "  2. Full scan and repair (requires reboot)"
-            Write-Host ""
-            $option = Read-Host "Select option (1-2)"
+            $option = Show-GUIMenu -Title "ChkDsk Options" `
+                -Options @("Quick scan (read-only)", "Full scan and repair (requires reboot)") `
+                -Prompt "Select scan type"
             
             if ($option -eq '1') {
                 Write-Host "Running read-only scan..." -ForegroundColor Yellow
@@ -2429,14 +2422,9 @@ function Get-WiFiDiagnostics {
         $savedNetworks | ForEach-Object { Write-Host "  - $_" }
         
         Write-Host ""
-        Write-Host "Wi-Fi Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Reset Wi-Fi adapter"
-        Write-Host "  2. Forget current network and reconnect"
-        Write-Host "  3. Remove all saved networks"
-        Write-Host "  4. Show network report"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-4, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Wi-Fi Actions" `
+            -Options @("Reset Wi-Fi adapter", "Forget current network and reconnect", "Remove all saved networks", "Show network report") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -2523,13 +2511,9 @@ function Test-VPNHealth {
             }
             
             Write-Host ""
-            Write-Host "VPN Actions:" -ForegroundColor Cyan
-            Write-Host "  1. Reconnect VPN"
-            Write-Host "  2. Disconnect VPN"
-            Write-Host "  3. Clear VPN cache"
-            Write-Host "  0. Skip"
-            Write-Host ""
-            $choice = Read-Host "Select action (1-3, 0=Skip)"
+            $choice = Show-GUIMenu -Title "VPN Actions" `
+                -Options @("Reconnect VPN", "Disconnect VPN", "Clear VPN cache") `
+                -Prompt "Select action"
             
             switch ($choice) {
                 '1' {
@@ -2611,13 +2595,9 @@ function Test-WebcamAudio {
         
         Write-Host ""
         Write-Host "Device Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Test webcam (opens Camera app)"
-        Write-Host "  2. Test microphone (opens Sound Recorder)"
-        Write-Host "  3. Open Sound settings"
-        Write-Host "  4. Kill processes using camera/mic"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-4, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Device Actions" `
+            -Options @("Test webcam (opens Camera app)", "Test microphone (opens Sound Recorder)", "Open Sound settings", "Kill processes using camera/mic") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -2717,13 +2697,9 @@ function Get-BitLockerStatus {
         
         Write-Host ""
         Write-Host "BitLocker Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Backup recovery keys to file"
-        Write-Host "  2. Backup recovery keys to Intune/Azure AD (and verify)"
-        Write-Host "  3. Suspend BitLocker (temporarily)"
-        Write-Host "  4. Resume BitLocker"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-4, 0=Skip)"
+        $choice = Show-GUIMenu -Title "BitLocker Actions" `
+            -Options @("Backup recovery keys to file", "Backup recovery keys to Intune/Azure AD (and verify)", "Suspend BitLocker (temporarily)", "Resume BitLocker") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -2880,14 +2856,9 @@ function Get-PowerManagement {
         
         Write-Host ""
         Write-Host "Power Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Switch to High Performance"
-        Write-Host "  2. Switch to Balanced (recommended)"
-        Write-Host "  3. Switch to Power Saver"
-        Write-Host "  4. Show sleep/hibernate settings"
-        Write-Host "  5. Disable USB selective suspend"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-5, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Power Actions" `
+            -Options @("Switch to High Performance", "Switch to Balanced (recommended)", "Switch to Power Saver", "Show sleep/hibernate settings", "Disable USB selective suspend") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -2954,15 +2925,9 @@ function Get-DockingDisplays {
         
         Write-Host ""
         Write-Host "Display Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Detect displays"
-        Write-Host "  2. Extend displays"
-        Write-Host "  3. Duplicate displays"
-        Write-Host "  4. Project to second screen only"
-        Write-Host "  5. PC screen only"
-        Write-Host "  6. Open display settings"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-6, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Display Actions" `
+            -Options @("Detect displays", "Extend displays", "Duplicate displays", "Project to second screen only", "PC screen only", "Open display settings") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -3047,12 +3012,9 @@ function Get-BluetoothDevices {
         
         Write-Host ""
         Write-Host "Bluetooth Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Restart Bluetooth service"
-        Write-Host "  2. Open Bluetooth settings"
-        Write-Host "  3. Toggle Bluetooth (off then on)"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-3, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Bluetooth Actions" `
+            -Options @("Restart Bluetooth service", "Open Bluetooth settings", "Toggle Bluetooth (off then on)") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -3129,12 +3091,9 @@ function Get-StorageHealth {
         
         Write-Host ""
         Write-Host "Storage Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Optimize drives (TRIM/defrag)"
-        Write-Host "  2. Check disk errors"
-        Write-Host "  3. View detailed disk info"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-3, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Storage Actions" `
+            -Options @("Optimize drives (TRIM/defrag)", "Check disk errors", "View detailed disk info") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -4645,15 +4604,9 @@ function Repair-DomainTrust {
         # Display repair options
         Write-Host ""
         Write-Host "Domain Trust Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Test and repair secure channel"
-        Write-Host "  2. Reset computer account password"
-        Write-Host "  3. Sync time with domain controller"
-        Write-Host "  4. Clear Kerberos tickets"
-        Write-Host "  5. Rejoin domain (requires credentials)"
-        Write-Host "  6. Display detailed domain info"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-6, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Domain Trust Actions" `
+            -Options @("Test and repair secure channel", "Reset computer account password", "Sync time with domain controller", "Clear Kerberos tickets", "Rejoin domain (requires credentials)", "Display detailed domain info") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -5880,15 +5833,9 @@ function Repair-PrinterIssues {
         # Available Actions
         Write-Host ""
         Write-Host "Printer Troubleshooting Actions:" -ForegroundColor Cyan
-        Write-Host "  1. Restart Print Spooler service"
-        Write-Host "  2. Clear all print jobs (cancel stuck jobs)"
-        Write-Host "  3. Clear Print Spooler folder (delete all spooled files)"
-        Write-Host "  4. Remove offline/ghost printers"
-        Write-Host "  5. Full printer reset (restart spooler + clear jobs + clean folder)"
-        Write-Host "  6. Export printer list to file"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-6, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Printer Troubleshooting Actions" `
+            -Options @("Restart Print Spooler service", "Clear all print jobs (cancel stuck jobs)", "Clear Print Spooler folder (delete all spooled files)", "Remove offline/ghost printers", "Full printer reset (restart spooler + clear jobs + clean folder)", "Export printer list to file") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -6186,15 +6133,9 @@ function Optimize-Performance {
         # Performance optimization actions
         Write-Host ""
         Write-Host "Performance Optimization Actions:" -ForegroundColor Cyan
-        Write-Host "  1. View and manage startup programs"
-        Write-Host "  2. Clear temporary files and caches"
-        Write-Host "  3. Optimize virtual memory settings"
-        Write-Host "  4. Disable visual effects (performance mode)"
-        Write-Host "  5. Check for resource-hogging processes"
-        Write-Host "  6. Full optimization (all of the above)"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-6, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Performance Optimization Actions" `
+            -Options @("View and manage startup programs", "Clear temporary files and caches", "Optimize virtual memory settings", "Disable visual effects (performance mode)", "Check for resource-hogging processes", "Full optimization (all of the above)") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
@@ -6413,13 +6354,9 @@ function Reset-WindowsSearch {
         Write-Host "WINDOWS SEARCH REPAIR OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Restart Search Service (Quick)" -ForegroundColor Green
-        Write-Host "2. Rebuild Search Index (Recommended)" -ForegroundColor Yellow
-        Write-Host "3. Reset Search Index Completely" -ForegroundColor Red
-        Write-Host "4. Check Search Service Status"
-        Write-Host "5. Full Search Repair (All Steps)"
-        Write-Host ""
-        $option = Read-Host "Select option (1-5)"
+        $option = Show-GUIMenu -Title "Windows Search Repair Options" `
+            -Options @("Restart Search Service (Quick)", "Rebuild Search Index (Recommended)", "Reset Search Index Completely", "Check Search Service Status", "Full Search Repair (All Steps)") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -6629,14 +6566,9 @@ function Repair-StartMenuTaskbar {
         Write-Host "START MENU & TASKBAR REPAIR OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Restart Windows Explorer (Quick Fix)" -ForegroundColor Green
-        Write-Host "2. Reset Start Menu Layout" -ForegroundColor Yellow
-        Write-Host "3. Reset Taskbar Settings" -ForegroundColor Yellow
-        Write-Host "4. Re-register Start Menu Apps" -ForegroundColor Yellow
-        Write-Host "5. Full Start Menu Reset (Windows 11)" -ForegroundColor Red
-        Write-Host "6. Complete Repair (All Steps)" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "Start Menu & Taskbar Repair Options" `
+            -Options @("Restart Windows Explorer (Quick Fix)", "Reset Start Menu Layout", "Reset Taskbar Settings", "Re-register Start Menu Apps", "Full Start Menu Reset (Windows 11)", "Complete Repair (All Steps)") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -6886,14 +6818,9 @@ function Repair-AudioAdvanced {
         Write-Host "AUDIO TROUBLESHOOTING OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Check Audio Devices Status" -ForegroundColor Green
-        Write-Host "2. Restart Audio Services" -ForegroundColor Yellow
-        Write-Host "3. Reset Audio Settings" -ForegroundColor Yellow
-        Write-Host "4. Fix Audio Drivers" -ForegroundColor Yellow
-        Write-Host "5. Run Windows Audio Troubleshooter" -ForegroundColor Green
-        Write-Host "6. Complete Audio Repair (All Steps)" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "Audio Troubleshooting Options" `
+            -Options @("Check Audio Devices Status", "Restart Audio Services", "Reset Audio Settings", "Fix Audio Drivers", "Run Windows Audio Troubleshooter", "Complete Audio Repair (All Steps)") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -7150,14 +7077,9 @@ function Reset-WindowsExplorer {
         Write-Host "WINDOWS EXPLORER REPAIR OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Restart Windows Explorer (Quick)" -ForegroundColor Green
-        Write-Host "2. Clear Explorer Cache and History" -ForegroundColor Yellow
-        Write-Host "3. Reset Folder View Settings" -ForegroundColor Yellow
-        Write-Host "4. Reset File Explorer Options" -ForegroundColor Yellow
-        Write-Host "5. Rebuild Icon Cache" -ForegroundColor Yellow
-        Write-Host "6. Complete Explorer Reset (All Steps)" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "Windows Explorer Repair Options" `
+            -Options @("Restart Windows Explorer (Quick)", "Clear Explorer Cache and History", "Reset Folder View Settings", "Reset File Explorer Options", "Rebuild Icon Cache", "Complete Explorer Reset (All Steps)") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -7375,14 +7297,9 @@ function Repair-NetworkDrives {
         Write-Host "NETWORK DRIVE REPAIR OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Show Current Mapped Drives" -ForegroundColor Green
-        Write-Host "2. Reconnect All Drives" -ForegroundColor Yellow
-        Write-Host "3. Remove and Remap Drive" -ForegroundColor Yellow
-        Write-Host "4. Test Drive Connectivity" -ForegroundColor Green
-        Write-Host "5. Clear Cached Credentials" -ForegroundColor Red
-        Write-Host "6. Complete Drive Repair" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "Network Drive Repair Options" `
+            -Options @("Show Current Mapped Drives", "Reconnect All Drives", "Remove and Remap Drive", "Test Drive Connectivity", "Clear Cached Credentials", "Complete Drive Repair") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -7829,14 +7746,9 @@ function Reset-FileAssociations {
         Write-Host "FILE ASSOCIATION REPAIR OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Show Current Associations" -ForegroundColor Green
-        Write-Host "2. Reset All File Associations" -ForegroundColor Red
-        Write-Host "3. Fix Specific File Type" -ForegroundColor Yellow
-        Write-Host "4. Open Default Apps Settings" -ForegroundColor Green
-        Write-Host "5. Reset Browser Default" -ForegroundColor Yellow
-        Write-Host "6. Reset All Defaults (Complete)" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "File Association Repair Options" `
+            -Options @("Show Current Associations", "Reset All File Associations", "Fix Specific File Type", "Open Default Apps Settings", "Reset Browser Default", "Reset All Defaults (Complete)") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -8028,14 +7940,9 @@ function Clear-SavedCredentials {
         Write-Host "CREDENTIAL MANAGEMENT OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. List All Saved Credentials" -ForegroundColor Green
-        Write-Host "2. Clear Network Credentials" -ForegroundColor Yellow
-        Write-Host "3. Clear Web Credentials" -ForegroundColor Yellow
-        Write-Host "4. Remove Specific Credential" -ForegroundColor Yellow
-        Write-Host "5. Open Credential Manager" -ForegroundColor Green
-        Write-Host "6. Clear All Credentials (Complete)" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "Credential Management Options" `
+            -Options @("List All Saved Credentials", "Clear Network Credentials", "Clear Web Credentials", "Remove Specific Credential", "Open Credential Manager", "Clear All Credentials (Complete)") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -8244,14 +8151,9 @@ function Set-DisplayMonitor {
         Write-Host "DISPLAY CONFIGURATION OPTIONS" -ForegroundColor Cyan
         Write-Host "========================================" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "1. Show Current Display Configuration" -ForegroundColor Green
-        Write-Host "2. Detect Displays" -ForegroundColor Yellow
-        Write-Host "3. Reset Display Settings" -ForegroundColor Yellow
-        Write-Host "4. Configure Multiple Monitors" -ForegroundColor Green
-        Write-Host "5. Fix Display Driver Issues" -ForegroundColor Yellow
-        Write-Host "6. Complete Display Repair" -ForegroundColor Red
-        Write-Host ""
-        $option = Read-Host "Select option (1-6)"
+        $option = Show-GUIMenu -Title "Display Configuration Options" `
+            -Options @("Show Current Display Configuration", "Detect Displays", "Reset Display Settings", "Configure Multiple Monitors", "Fix Display Driver Issues", "Complete Display Repair") `
+            -Prompt "Select option"
         
         switch ($option) {
             '1' {
@@ -8347,13 +8249,10 @@ function Set-DisplayMonitor {
                 Write-Host ""
                 
                 Write-Host "Quick display mode selection (Windows + P):" -ForegroundColor Yellow
-                Write-Host "  1. PC screen only" -ForegroundColor White
-                Write-Host "  2. Duplicate" -ForegroundColor White
-                Write-Host "  3. Extend" -ForegroundColor White
-                Write-Host "  4. Second screen only" -ForegroundColor White
-                Write-Host ""
-                
-                $mode = Read-Host "Select mode (1-4) or press Enter to open Display Settings"
+
+                $mode = Show-GUIMenu -Title "Display Mode Selection" `
+                    -Options @("PC screen only", "Duplicate", "Extend", "Second screen only") `
+                    -Prompt "Select mode or cancel to open Display Settings"
                 
                 if ($mode) {
                     Write-Host ""
