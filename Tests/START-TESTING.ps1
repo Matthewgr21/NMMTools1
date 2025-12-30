@@ -99,13 +99,13 @@ function Show-TestMenu {
     Write-Host "Select testing option:" -ForegroundColor White
     Write-Host ""
     Write-Host "  1. Quick Test (10 minutes) - Recommended for first run" -ForegroundColor Green
-    Write-Host "     └─ Static analysis + automated tests + 3 manual tests"
+    Write-Host "     -> Static analysis + automated tests + 3 manual tests"
     Write-Host ""
     Write-Host "  2. Critical Functions Test (40 minutes)" -ForegroundColor Yellow
-    Write-Host "     └─ All automated tests + priority 1 manual tests"
+    Write-Host "     -> All automated tests + priority 1 manual tests"
     Write-Host ""
     Write-Host "  3. Full Comprehensive Test (2.5 hours)" -ForegroundColor Cyan
-    Write-Host "     └─ Complete validation of all 75 tools"
+    Write-Host "     -> Complete validation of all 75 tools"
     Write-Host ""
     Write-Host "  4. Custom - Run individual test scripts" -ForegroundColor Gray
     Write-Host ""
@@ -114,7 +114,7 @@ function Show-TestMenu {
     Write-Host "  X. Exit" -ForegroundColor Red
     Write-Host ""
 
-    $choice = Read-Host "Enter choice (1-5 or X)"
+    $choice = Read-Host "Enter choice (1-5, X)"
     return $choice
 }
 
@@ -278,13 +278,13 @@ function Start-QuickTest {
 
     if ($allPass) {
         Write-Host ""
-        Write-Host "✓ ALL TESTS PASSED!" -ForegroundColor Green
+        Write-Host "[PASS] ALL TESTS PASSED!" -ForegroundColor Green
         Write-Host ""
         Write-Host "The toolkit is working correctly!" -ForegroundColor Green
         Write-Host "You can proceed with deployment or run more comprehensive tests." -ForegroundColor White
     } else {
         Write-Host ""
-        Write-Host "✗ SOME TESTS FAILED" -ForegroundColor Red
+        Write-Host "[FAIL] SOME TESTS FAILED" -ForegroundColor Red
         Write-Host ""
         Write-Host "Please review the failures above." -ForegroundColor Yellow
         Write-Host "Do not deploy until all issues are resolved." -ForegroundColor Yellow
