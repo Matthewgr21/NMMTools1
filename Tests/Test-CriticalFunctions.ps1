@@ -374,11 +374,11 @@ $testResults | Format-Table Function, Status, @{Label="Duration(s)"; Expression=
 Write-Host ""
 
 if ($failCount -eq 0) {
-    Write-Host "✓ ALL CRITICAL TESTS PASSED!" -ForegroundColor Green
+    Write-Host "[PASS] ALL CRITICAL TESTS PASSED!" -ForegroundColor Green
     Write-Host "The toolkit is ready for deployment." -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "✗ SOME TESTS FAILED" -ForegroundColor Red
+    Write-Host "[FAIL] SOME TESTS FAILED" -ForegroundColor Red
     Write-Host "Please review failures before deployment." -ForegroundColor Yellow
     exit 1
 }
