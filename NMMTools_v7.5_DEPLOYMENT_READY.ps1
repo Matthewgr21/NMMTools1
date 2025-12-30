@@ -1141,12 +1141,9 @@ function Repair-Office365 {
         }
         
         Write-Host ""
-        Write-Host "Office Repair Options:"
-        Write-Host "  1. Quick Repair"
-        Write-Host "  2. Clear Office Credentials"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select option (1-2, 0=Skip)"
+        $choice = Show-GUIMenu -Title "Office Repair Options" `
+            -Options @("Quick Repair", "Clear Office Credentials") `
+            -Prompt "Select repair option"
         
         switch ($choice) {
             '1' {
@@ -1189,12 +1186,9 @@ function Reset-OneDrive {
         }
         
         Write-Host ""
-        Write-Host "OneDrive Actions:"
-        Write-Host "  1. Reset OneDrive"
-        Write-Host "  2. Restart OneDrive"
-        Write-Host "  0. Skip"
-        Write-Host ""
-        $choice = Read-Host "Select action (1-2, 0=Skip)"
+        $choice = Show-GUIMenu -Title "OneDrive Actions" `
+            -Options @("Reset OneDrive", "Restart OneDrive") `
+            -Prompt "Select action"
         
         switch ($choice) {
             '1' {
