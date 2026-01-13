@@ -12,6 +12,7 @@ import json
 import subprocess
 import threading
 import uuid
+import socket
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
@@ -78,6 +79,48 @@ def admin_required(f):
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
+
+# =============================================================================
+# CLIENT DETECTION
+# =============================================================================
+
+def get_client_info():
+    """Get the client's IP address and attempt to resolve hostname"""
+    client_ip = request.remote_addr
+
+    # Handle proxy headers if behind a reverse proxy
+    if request.headers.get('X-Forwarded-For'):
+        client_ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    elif request.headers.get('X-Real-IP'):
+        client_ip = request.headers.get('X-Real-IP')
+
+    # Try to resolve hostname from IP
+    client_hostname = None
+    try:
+        # Reverse DNS lookup
+        client_hostname = socket.gethostbyaddr(client_ip)[0]
+        # Extract just the computer name (before the domain)
+        if '.' in client_hostname:
+            client_hostname = client_hostname.split('.')[0]
+    except (socket.herror, socket.gaierror):
+        # If reverse DNS fails, try NetBIOS resolution via PowerShell (Windows only)
+        try:
+            result = subprocess.run(
+                ['powershell', '-NoProfile', '-Command',
+                 f'(nbtstat -A {client_ip} 2>$null | Select-String "<00>  UNIQUE" | Select-Object -First 1).ToString().Trim().Split()[0]'],
+                capture_output=True, text=True, timeout=5,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                client_hostname = result.stdout.strip()
+        except:
+            pass
+
+    return {
+        'ip': client_ip,
+        'hostname': client_hostname or client_ip,
+        'is_local': client_ip in ('127.0.0.1', '::1', 'localhost')
+    }
 
 # =============================================================================
 # TOOL DEFINITIONS
@@ -731,11 +774,15 @@ def tool_page(tool_id):
         flash('Tool not found', 'error')
         return redirect(url_for('dashboard'))
 
+    # Get client info for auto-targeting
+    client_info = get_client_info()
+
     return render_template('tool.html',
                          tool=tool_info,
                          category=category_info,
                          config=CONFIG,
-                         username=session.get('username', 'User'))
+                         username=session.get('username', 'User'),
+                         client_info=client_info)
 
 # =============================================================================
 # API ENDPOINTS
@@ -818,6 +865,16 @@ def api_health():
         'status': 'healthy',
         'version': CONFIG['VERSION'],
         'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/api/client-info')
+@login_required
+def api_client_info():
+    """Get detected client computer information"""
+    client_info = get_client_info()
+    return jsonify({
+        'success': True,
+        'client': client_info
     })
 
 # =============================================================================

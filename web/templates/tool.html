@@ -99,8 +99,14 @@
 
                         <div class="mb-4">
                             <label class="form-label text-muted small">Target Computer</label>
-                            <input type="text" class="form-control bg-dark border-secondary" id="targetHost" value="localhost" placeholder="Computer name or IP">
-                            <small class="text-muted">Use "localhost" for local execution</small>
+                            <input type="text" class="form-control bg-dark border-secondary" id="targetHost" value="{{ client_info.hostname }}" placeholder="Computer name or IP">
+                            <small class="text-muted">
+                                {% if client_info.is_local %}
+                                Running on server (localhost)
+                                {% else %}
+                                Auto-detected: {{ client_info.hostname }} ({{ client_info.ip }})
+                                {% endif %}
+                            </small>
                         </div>
 
                         <button class="btn btn-{{ category.color }} btn-run w-100" id="runButton"
@@ -157,7 +163,7 @@ Output will appear here in real-time.</span>
                             <div class="col-auto">
                                 <small class="text-muted">
                                     <i class="bi bi-pc-display me-1"></i>
-                                    Target: <span id="targetDisplay">localhost</span>
+                                    Target: <span id="targetDisplay">{{ client_info.hostname }}</span>
                                 </small>
                             </div>
                         </div>
