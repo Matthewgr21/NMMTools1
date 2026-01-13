@@ -6,8 +6,8 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <h4><i class="bi bi-tools me-2"></i>NMM Toolkit</h4>
-        <small>Version {{ config.VERSION }} - Web Edition</small>
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="New Mexico Mutual">
+        <div class="version-tag">IT Toolkit v{{ config.VERSION }}</div>
     </div>
 
     <nav class="sidebar-nav">
