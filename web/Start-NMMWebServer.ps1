@@ -9,7 +9,7 @@
 .PARAMETER Port
     The port to run the web server on. Default: 5000
 
-.PARAMETER Host
+.PARAMETER BindAddress
     The host/IP to bind to. Default: 0.0.0.0 (all interfaces)
 
 .PARAMETER Production
@@ -26,7 +26,7 @@
 
 param(
     [int]$Port = 5000,
-    [string]$Host = "0.0.0.0",
+    [string]$BindAddress = "0.0.0.0",
     [switch]$Production,
     [switch]$Install
 )
@@ -91,7 +91,7 @@ Write-Host ""
 Write-Host "  Starting NMM Toolkit Web Server..." -ForegroundColor Cyan
 Write-Host "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
 Write-Host "  Mode:    $(if ($Production) { 'Production' } else { 'Development' })" -ForegroundColor White
-Write-Host "  Address: http://${Host}:${Port}" -ForegroundColor White
+Write-Host "  Address: http://${BindAddress}:${Port}" -ForegroundColor White
 Write-Host "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Press Ctrl+C to stop the server" -ForegroundColor DarkGray
@@ -100,7 +100,7 @@ Write-Host ""
 # Start server
 if ($Production) {
     # Production mode with Gunicorn (requires eventlet for SocketIO)
-    gunicorn -k eventlet -w 1 -b "${Host}:${Port}" wsgi:application
+    gunicorn -k eventlet -w 1 -b "${BindAddress}:${Port}" wsgi:application
 } else {
     # Development mode
     python app.py
