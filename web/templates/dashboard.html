@@ -112,8 +112,8 @@
                                 <i class="bi bi-pc-display text-info fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="mb-0" id="hostname">Loading...</h3>
-                                <small class="text-muted">Target Host</small>
+                                <h3 class="mb-0">{{ client_info.hostname|upper }}</h3>
+                                <small class="text-muted">Your Computer</small>
                             </div>
                         </div>
                     </div>
@@ -190,17 +190,7 @@
 
 {% block extra_js %}
 <script>
-    // Fetch system info on load
-    fetch('/api/system-info')
-        .then(response => response.json())
-        .then(data => {
-            if (data.output) {
-                const lines = data.output.trim().split('\n');
-                document.getElementById('hostname').textContent = lines[0] || 'localhost';
-            }
-        })
-        .catch(err => {
-            document.getElementById('hostname').textContent = 'localhost';
-        });
+    // Client hostname is now rendered server-side via client_info
+    console.log('Dashboard loaded for client: {{ client_info.hostname }}');
 </script>
 {% endblock %}

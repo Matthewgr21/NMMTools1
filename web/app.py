@@ -734,10 +734,12 @@ def logout():
 @login_required
 def dashboard():
     """Main dashboard"""
+    client_info = get_client_info()
     return render_template('dashboard.html',
                          categories=TOOL_CATEGORIES,
                          config=CONFIG,
-                         username=session.get('username', 'User'))
+                         username=session.get('username', 'User'),
+                         client_info=client_info)
 
 @app.route('/category/<category_id>')
 @login_required
