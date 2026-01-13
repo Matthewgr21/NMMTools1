@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Login - {{ config.APP_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a1d21 0%, #0d1117 100%);
+    }
+
+    .login-card {
+        background: #1e2328;
+        border: 1px solid #2d3238;
+        border-radius: 1rem;
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .login-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-logo .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border-radius: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .login-logo .icon-wrapper i {
+        font-size: 2.5rem;
+        color: #fff;
+    }
+
+    .login-logo h2 {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .login-logo p {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .form-floating label {
+        color: #6c757d;
+    }
+
+    .form-floating .form-control {
+        background: #15181c;
+        border-color: #2d3238;
+        color: #fff;
+    }
+
+    .form-floating .form-control:focus {
+        background: #15181c;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        color: #fff;
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+        padding: 0.875rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #2d3238;
+    }
+
+    .login-footer p {
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin: 0;
+    }
+
+    .version-badge {
+        display: inline-block;
+        background: rgba(13, 110, 253, 0.2);
+        color: #0d6efd;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="icon-wrapper">
+                <i class="bi bi-tools"></i>
+            </div>
+            <h2>{{ config.APP_NAME }}</h2>
+            <p>{{ config.EDITION }}</p>
+            <span class="version-badge">Version {{ config.VERSION }}</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required autofocus>
+                <label for="username"><i class="bi bi-person me-2"></i>Username</label>
+            </div>
+
+            <div class="form-floating mb-4">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                <label for="password"><i class="bi bi-lock me-2"></i>Password</label>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                <label class="form-check-label" for="remember">
+                    Keep me signed in
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-login w-100">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p><i class="bi bi-shield-check me-1"></i>Sign in with your company credentials</p>
+            <p class="mt-2">For IT Support Staff Only</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

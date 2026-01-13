@@ -1,0 +1,29 @@
+# NMM System Toolkit - Web Intranet Edition
+# Version 8.0 Web
+# Python Dependencies
+
+# Core Framework
+Flask==3.0.0
+Flask-SocketIO==5.3.6
+
+# WebSocket Support
+python-socketio==5.10.0
+python-engineio==4.8.1
+
+# WSGI Server (Production)
+gunicorn==21.2.0
+eventlet==0.34.2
+
+# Security
+python-dotenv==1.0.0
+Werkzeug==3.0.1
+
+# Optional: LDAP Authentication
+# python-ldap==3.4.4  # Uncomment for Active Directory integration
+
+# Optional: Database Sessions
+# Flask-Session==0.5.0  # Uncomment for persistent sessions
+# redis==5.0.1  # Uncomment for Redis session backend
+
+# Development
+watchdog==3.0.0

@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.name }} - {{ config.APP_NAME }}{% endblock %}
+
+{% block body %}
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h4><i class="bi bi-tools me-2"></i>NMM Toolkit</h4>
+        <small>Version {{ config.VERSION }} - Web Edition</small>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a href="{{ url_for('dashboard') }}" class="nav-link">
+            <i class="bi bi-speedometer2"></i>
+            Dashboard
+        </a>
+
+        <div class="nav-section mt-3">Tool Categories</div>
+        {% set all_categories = {
+            'system_diagnostics': {'name': 'System Diagnostics', 'icon': 'bi-pc-display'},
+            'cloud_collaboration': {'name': 'Cloud & Collaboration', 'icon': 'bi-cloud'},
+            'advanced_repair': {'name': 'Advanced System Repair', 'icon': 'bi-wrench-adjustable'},
+            'laptop_mobile': {'name': 'Laptop & Mobile', 'icon': 'bi-laptop'},
+            'browser_tools': {'name': 'Browser & Data Tools', 'icon': 'bi-globe'},
+            'common_issues': {'name': 'Common User Issues', 'icon': 'bi-question-circle'},
+            'quick_fixes': {'name': 'Quick Fixes', 'icon': 'bi-lightning'}
+        } %}
+        {% for cat_id, cat in all_categories.items() %}
+        <a href="{{ url_for('category', category_id=cat_id) }}" class="nav-link {{ 'active' if cat_id == category.id else '' }}">
+            <i class="bi {{ cat.icon }}"></i>
+            {{ cat.name }}
+        </a>
+        {% endfor %}
+
+        <div class="nav-section mt-3">Account</div>
+        <a href="{{ url_for('logout') }}" class="nav-link">
+            <i class="bi bi-box-arrow-left"></i>
+            Sign Out
+        </a>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Top Navbar -->
+    <nav class="top-navbar">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('category', category_id=category.id) }}">{{ category.name }}</a></li>
+                <li class="breadcrumb-item active">{{ tool.name }}</li>
+            </ol>
+        </nav>
+        <div class="user-menu">
+            <span class="text-muted">Welcome,</span>
+            <span class="fw-semibold">{{ username }}</span>
+            <div class="user-avatar">{{ username[0]|upper }}</div>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <div class="row">
+            <!-- Tool Info Panel -->
+            <div class="col-lg-4 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body">
+                        <div class="tool-icon bg-{{ category.color }} bg-opacity-25 mb-3" style="width: 64px; height: 64px;">
+                            <i class="bi {{ category.icon }} text-{{ category.color }}" style="font-size: 2rem;"></i>
+                        </div>
+                        <h4>{{ tool.name }}</h4>
+                        <p class="text-muted">{{ tool.description }}</p>
+
+                        <hr class="border-secondary">
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Category</label>
+                            <div>
+                                <span class="badge bg-{{ category.color }}">{{ category.name }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Permissions</label>
+                            <div>
+                                {% if tool.admin_required %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-shield-lock me-1"></i>Administrator Required
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-person me-1"></i>Standard User
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Target Computer</label>
+                            <input type="text" class="form-control bg-dark border-secondary" id="targetHost" value="localhost" placeholder="Computer name or IP">
+                            <small class="text-muted">Use "localhost" for local execution</small>
+                        </div>
+
+                        <button class="btn btn-{{ category.color }} btn-run w-100" id="runButton"
+                                {% if tool.admin_required and not session.get('is_admin') %}disabled{% endif %}>
+                            <i class="bi bi-play-fill me-2"></i>Run Tool
+                        </button>
+
+                        {% if tool.admin_required and not session.get('is_admin') %}
+                        <div class="alert alert-warning mt-3 mb-0 py-2">
+                            <small><i class="bi bi-exclamation-triangle me-1"></i>Administrator privileges required</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="col-lg-8">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-terminal me-2"></i>Output Console
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="status-badge" id="statusBadge">
+                                <i class="bi bi-circle me-1"></i>Ready
+                            </span>
+                            <button class="btn btn-outline-secondary btn-sm" id="clearBtn" title="Clear output">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="copyBtn" title="Copy output">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="downloadBtn" title="Download output">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="output-console" id="outputConsole" style="min-height: 450px; max-height: 600px;">
+<span class="text-muted">Click "Run Tool" to execute {{ tool.name }}
+
+Output will appear here in real-time.</span>
+                        </div>
+                    </div>
+                    <div class="card-footer border-secondary">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    <span id="executionTime">-</span>
+                                </small>
+                            </div>
+                            <div class="col-auto">
+                                <small class="text-muted">
+                                    <i class="bi bi-pc-display me-1"></i>
+                                    Target: <span id="targetDisplay">localhost</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Panel -->
+                <div class="card bg-dark border-secondary mt-4">
+                    <div class="card-header border-secondary">
+                        <i class="bi bi-question-circle me-2"></i>About This Tool
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">{{ tool.description }}</p>
+                        <p class="text-muted small mb-0">
+                            This tool is part of the <strong>{{ category.name }}</strong> category in the NMM System Toolkit.
+                            {% if tool.admin_required %}
+                            It requires administrator privileges to execute system-level operations.
+                            {% else %}
+                            It can be run with standard user privileges.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const toolId = '{{ tool.id }}';
+    const outputConsole = document.getElementById('outputConsole');
+    const runButton = document.getElementById('runButton');
+    const statusBadge = document.getElementById('statusBadge');
+    const targetHostInput = document.getElementById('targetHost');
+    const targetDisplay = document.getElementById('targetDisplay');
+    const executionTimeEl = document.getElementById('executionTime');
+
+    let isRunning = false;
+    let startTime = null;
+
+    // Update target display
+    targetHostInput.addEventListener('input', function() {
+        targetDisplay.textContent = this.value || 'localhost';
+    });
+
+    // Run button click
+    runButton.addEventListener('click', function() {
+        if (isRunning) return;
+
+        isRunning = true;
+        startTime = new Date();
+
+        // Update UI
+        runButton.disabled = true;
+        runButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+        statusBadge.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Running';
+        statusBadge.className = 'status-badge status-running';
+        outputConsole.innerHTML = '<span class="timestamp">[' + formatTime(new Date()) + ']</span> Starting {{ tool.name }}...\n';
+
+        const targetHost = targetHostInput.value || 'localhost';
+
+        fetch('/api/run-tool', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tool_id: toolId,
+                target_host: targetHost
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            isRunning = false;
+            runButton.disabled = false;
+            runButton.innerHTML = '<i class="bi bi-play-fill me-2"></i>Run Tool';
+
+            const endTime = new Date();
+            const duration = ((endTime - startTime) / 1000).toFixed(2);
+            executionTimeEl.textContent = duration + 's';
+
+            if (data.success && data.result) {
+                const output = data.result.output || '';
+                const error = data.result.error || '';
+
+                let html = '<span class="timestamp">[' + formatTime(startTime) + ']</span> Executing on ' + escapeHtml(targetHost) + '\n';
+                html += '<span class="timestamp">[' + formatTime(startTime) + ']</span> ─────────────────────────────────────────\n\n';
+
+                if (output) {
+                    html += formatOutput(output);
+                }
+
+                if (error) {
+                    html += '\n<span class="error">' + escapeHtml(error) + '</span>';
+                }
+
+                html += '\n\n<span class="timestamp">[' + formatTime(endTime) + ']</span> ─────────────────────────────────────────\n';
+
+                if (data.result.success) {
+                    html += '<span class="success">[' + formatTime(endTime) + '] Completed successfully</span>';
+                    statusBadge.innerHTML = '<i class="bi bi-check-circle me-1"></i>Success';
+                    statusBadge.className = 'status-badge status-success';
+                } else {
+                    html += '<span class="error">[' + formatTime(endTime) + '] Completed with errors</span>';
+                    statusBadge.innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+                    statusBadge.className = 'status-badge status-error';
+                }
+
+                outputConsole.innerHTML = html;
+            } else {
+                outputConsole.innerHTML = '<span class="error">Error: ' + escapeHtml(data.error || 'Unknown error') + '</span>';
+                statusBadge.innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+                statusBadge.className = 'status-badge status-error';
+            }
+
+            // Scroll to bottom
+            outputConsole.scrollTop = outputConsole.scrollHeight;
+        })
+        .catch(err => {
+            isRunning = false;
+            runButton.disabled = false;
+            runButton.innerHTML = '<i class="bi bi-play-fill me-2"></i>Run Tool';
+            outputConsole.innerHTML = '<span class="error">Request failed: ' + escapeHtml(err.message) + '</span>';
+            statusBadge.innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+            statusBadge.className = 'status-badge status-error';
+        });
+    });
+
+    // Clear button
+    document.getElementById('clearBtn').addEventListener('click', function() {
+        outputConsole.innerHTML = '<span class="text-muted">Output cleared. Click "Run Tool" to execute again.</span>';
+        statusBadge.innerHTML = '<i class="bi bi-circle me-1"></i>Ready';
+        statusBadge.className = 'status-badge';
+        executionTimeEl.textContent = '-';
+    });
+
+    // Copy button
+    document.getElementById('copyBtn').addEventListener('click', function() {
+        const text = outputConsole.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = this;
+            btn.innerHTML = '<i class="bi bi-check"></i>';
+            setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+        });
+    });
+
+    // Download button
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+        const text = outputConsole.textContent;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '{{ tool.id }}_output_' + formatDateTime(new Date()) + '.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // Helper functions
+    function formatTime(date) {
+        return date.toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    function formatDateTime(date) {
+        return date.toISOString().slice(0, 19).replace(/[T:]/g, '-');
+    }
+
+    function formatOutput(text) {
+        return escapeHtml(text)
+            .replace(/=== (.*?) ===/g, '<span class="info">=== $1 ===</span>')
+            .replace(/\[(\w+)\]/g, '<span class="warning">[$1]</span>')
+            .replace(/(Connected|Success|Completed|OK|Running|True|Enabled|Green)/gi, '<span class="success">$1</span>')
+            .replace(/(Error|Failed|Disconnected|Warning|False|Disabled|Red)/gi, '<span class="error">$1</span>');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+{% endblock %}

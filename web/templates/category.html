@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - {{ config.APP_NAME }}{% endblock %}
+
+{% block body %}
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h4><i class="bi bi-tools me-2"></i>NMM Toolkit</h4>
+        <small>Version {{ config.VERSION }} - Web Edition</small>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a href="{{ url_for('dashboard') }}" class="nav-link">
+            <i class="bi bi-speedometer2"></i>
+            Dashboard
+        </a>
+
+        <div class="nav-section mt-3">Tool Categories</div>
+        {% set all_categories = {
+            'system_diagnostics': {'name': 'System Diagnostics', 'icon': 'bi-pc-display'},
+            'cloud_collaboration': {'name': 'Cloud & Collaboration', 'icon': 'bi-cloud'},
+            'advanced_repair': {'name': 'Advanced System Repair', 'icon': 'bi-wrench-adjustable'},
+            'laptop_mobile': {'name': 'Laptop & Mobile', 'icon': 'bi-laptop'},
+            'browser_tools': {'name': 'Browser & Data Tools', 'icon': 'bi-globe'},
+            'common_issues': {'name': 'Common User Issues', 'icon': 'bi-question-circle'},
+            'quick_fixes': {'name': 'Quick Fixes', 'icon': 'bi-lightning'}
+        } %}
+        {% for cat_id, cat in all_categories.items() %}
+        <a href="{{ url_for('category', category_id=cat_id) }}" class="nav-link {{ 'active' if cat_id == category_id else '' }}">
+            <i class="bi {{ cat.icon }}"></i>
+            {{ cat.name }}
+        </a>
+        {% endfor %}
+
+        <div class="nav-section mt-3">Account</div>
+        <a href="{{ url_for('logout') }}" class="nav-link">
+            <i class="bi bi-box-arrow-left"></i>
+            Sign Out
+        </a>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Top Navbar -->
+    <nav class="top-navbar">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active">{{ category.name }}</li>
+            </ol>
+        </nav>
+        <div class="user-menu">
+            <span class="text-muted">Welcome,</span>
+            <span class="fw-semibold">{{ username }}</span>
+            <div class="user-avatar">{{ username[0]|upper }}</div>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <!-- Category Header -->
+        <div class="card bg-{{ category.color }} bg-opacity-10 border-{{ category.color }} mb-4">
+            <div class="card-body py-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="category-icon bg-{{ category.color }} bg-opacity-25" style="width: 72px; height: 72px;">
+                            <i class="bi {{ category.icon }} text-{{ category.color }}" style="font-size: 2.25rem;"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h3 class="mb-1">{{ category.name }}</h3>
+                        <p class="text-muted mb-0">{{ category.description }}</p>
+                    </div>
+                    <div class="col-auto">
+                        <span class="badge bg-{{ category.color }} fs-6 px-3 py-2">
+                            {{ category.tools|length }} Tools
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="row">
+            {% for tool in category.tools %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="tool-card card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="tool-icon bg-{{ category.color }} bg-opacity-25">
+                                <i class="bi {{ category.icon }} text-{{ category.color }}"></i>
+                            </div>
+                            {% if tool.admin_required %}
+                            <span class="admin-required">
+                                <i class="bi bi-shield-lock me-1"></i>Admin
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title">{{ tool.name }}</h5>
+                        <p class="card-text">{{ tool.description }}</p>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('tool_page', tool_id=tool.id) }}" class="btn btn-{{ category.color }} btn-sm">
+                                <i class="bi bi-play-circle me-1"></i>Run Tool
+                            </a>
+                            <button class="btn btn-outline-secondary btn-sm ms-2 btn-quick-run"
+                                    data-tool-id="{{ tool.id }}"
+                                    data-tool-name="{{ tool.name }}"
+                                    {% if tool.admin_required and not session.get('is_admin') %}disabled{% endif %}>
+                                <i class="bi bi-lightning"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Run Output Modal -->
+        <div class="modal fade" id="quickRunModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title">
+                            <i class="bi bi-terminal me-2"></i>
+                            <span id="modalToolName">Tool Output</span>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="output-console" id="quickRunOutput">
+                            <span class="text-muted">Waiting for output...</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <span class="status-badge" id="modalStatus">
+                            <span class="spinner-border spinner-border-sm"></span>
+                            Running...
+                        </span>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const quickRunModal = new bootstrap.Modal(document.getElementById('quickRunModal'));
+
+    document.querySelectorAll('.btn-quick-run').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const toolId = this.dataset.toolId;
+            const toolName = this.dataset.toolName;
+
+            document.getElementById('modalToolName').textContent = toolName;
+            document.getElementById('quickRunOutput').innerHTML = '<span class="text-muted">Starting...</span>';
+            document.getElementById('modalStatus').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+            document.getElementById('modalStatus').className = 'status-badge status-running';
+
+            quickRunModal.show();
+
+            fetch('/api/run-tool', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tool_id: toolId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.result) {
+                    const output = data.result.output || 'No output';
+                    const error = data.result.error || '';
+
+                    let html = '';
+                    if (output) {
+                        html += formatOutput(output);
+                    }
+                    if (error) {
+                        html += '<span class="error">' + escapeHtml(error) + '</span>';
+                    }
+
+                    document.getElementById('quickRunOutput').innerHTML = html || '<span class="text-muted">Command completed with no output</span>';
+
+                    if (data.result.success) {
+                        document.getElementById('modalStatus').innerHTML = '<i class="bi bi-check-circle me-1"></i>Completed';
+                        document.getElementById('modalStatus').className = 'status-badge status-success';
+                    } else {
+                        document.getElementById('modalStatus').innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+                        document.getElementById('modalStatus').className = 'status-badge status-error';
+                    }
+                } else {
+                    document.getElementById('quickRunOutput').innerHTML = '<span class="error">Error: ' + (data.error || 'Unknown error') + '</span>';
+                    document.getElementById('modalStatus').innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+                    document.getElementById('modalStatus').className = 'status-badge status-error';
+                }
+            })
+            .catch(err => {
+                document.getElementById('quickRunOutput').innerHTML = '<span class="error">Request failed: ' + err.message + '</span>';
+                document.getElementById('modalStatus').innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+                document.getElementById('modalStatus').className = 'status-badge status-error';
+            });
+        });
+    });
+
+    function formatOutput(text) {
+        // Apply color formatting
+        return escapeHtml(text)
+            .replace(/=== (.*?) ===/g, '<span class="info">=== $1 ===</span>')
+            .replace(/\[(\w+)\]/g, '<span class="warning">[$1]</span>')
+            .replace(/(Connected|Success|Completed|Green|OK|Running)/gi, '<span class="success">$1</span>')
+            .replace(/(Error|Failed|Disconnected|Red|Warning)/gi, '<span class="error">$1</span>');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+{% endblock %}
