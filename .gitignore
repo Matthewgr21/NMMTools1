@@ -1,0 +1,53 @@
+# NMMTools Git Ignore
+
+# Admin Configuration (contains sensitive tenant IDs and settings)
+AdminConfig.ps1
+
+# PowerShell Logs
+*.log
+
+# Test Results
+TestResults.xml
+*.trx
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual Environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp Files
+*.tmp
+*.temp
+~$*
+
+# Build Output
+dist/
+build/
+*.exe
+*.msi
+
+# Sensitive Files
+secrets.json
+credentials.json
+*.pfx
+*.key
+*.pem
