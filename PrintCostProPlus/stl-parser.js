@@ -191,7 +191,8 @@ class ModelParser {
     }
 
     /**
-     * Parse 3MF model XML
+     * Parse 3MF model XML with namespace support
+     * 3MF files use XML namespaces (e.g., xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02")
      */
     parse3MFModel(xml) {
         const parser = new DOMParser();
@@ -199,35 +200,77 @@ class ModelParser {
 
         const triangles = [];
 
-        // Get all mesh elements
-        const meshes = doc.querySelectorAll('mesh');
+        // 3MF namespace - try multiple common namespaces
+        const namespaces = [
+            'http://schemas.microsoft.com/3dmanufacturing/core/2015/02',
+            'http://schemas.microsoft.com/3dmanufacturing/2013/01',
+            null // fallback for non-namespaced elements
+        ];
+
+        // Helper function to get elements by local name with namespace support
+        const getElementsByLocalName = (parent, localName) => {
+            // First try with wildcard namespace selector (works in modern browsers)
+            let elements = parent.querySelectorAll(localName);
+            if (elements.length > 0) return Array.from(elements);
+
+            // Try with escaped namespace selector
+            elements = parent.querySelectorAll(`*|${localName}`);
+            if (elements.length > 0) return Array.from(elements);
+
+            // Try getElementsByTagNameNS with known namespaces
+            for (const ns of namespaces) {
+                elements = parent.getElementsByTagNameNS(ns, localName);
+                if (elements.length > 0) return Array.from(elements);
+            }
+
+            // Final fallback: manually iterate and match local names
+            const allElements = parent.getElementsByTagName('*');
+            const matched = [];
+            for (let i = 0; i < allElements.length; i++) {
+                const el = allElements[i];
+                if (el.localName === localName || el.nodeName.endsWith(':' + localName)) {
+                    matched.push(el);
+                }
+            }
+            return matched;
+        };
+
+        // Get all mesh elements using namespace-aware method
+        const meshes = getElementsByLocalName(doc, 'mesh');
 
         meshes.forEach(mesh => {
             const vertices = [];
-            const vertexElements = mesh.querySelectorAll('vertices vertex');
 
-            vertexElements.forEach(v => {
-                vertices.push({
-                    x: parseFloat(v.getAttribute('x')),
-                    y: parseFloat(v.getAttribute('y')),
-                    z: parseFloat(v.getAttribute('z'))
+            // Get vertices container first, then vertex elements
+            const verticesContainers = getElementsByLocalName(mesh, 'vertices');
+            verticesContainers.forEach(verticesContainer => {
+                const vertexElements = getElementsByLocalName(verticesContainer, 'vertex');
+                vertexElements.forEach(v => {
+                    vertices.push({
+                        x: parseFloat(v.getAttribute('x')),
+                        y: parseFloat(v.getAttribute('y')),
+                        z: parseFloat(v.getAttribute('z'))
+                    });
                 });
             });
 
-            const triangleElements = mesh.querySelectorAll('triangles triangle');
+            // Get triangles container, then triangle elements
+            const trianglesContainers = getElementsByLocalName(mesh, 'triangles');
+            trianglesContainers.forEach(trianglesContainer => {
+                const triangleElements = getElementsByLocalName(trianglesContainer, 'triangle');
+                triangleElements.forEach(t => {
+                    const v1Index = parseInt(t.getAttribute('v1'));
+                    const v2Index = parseInt(t.getAttribute('v2'));
+                    const v3Index = parseInt(t.getAttribute('v3'));
 
-            triangleElements.forEach(t => {
-                const v1Index = parseInt(t.getAttribute('v1'));
-                const v2Index = parseInt(t.getAttribute('v2'));
-                const v3Index = parseInt(t.getAttribute('v3'));
-
-                if (vertices[v1Index] && vertices[v2Index] && vertices[v3Index]) {
-                    triangles.push({
-                        v1: vertices[v1Index],
-                        v2: vertices[v2Index],
-                        v3: vertices[v3Index]
-                    });
-                }
+                    if (vertices[v1Index] && vertices[v2Index] && vertices[v3Index]) {
+                        triangles.push({
+                            v1: vertices[v1Index],
+                            v2: vertices[v2Index],
+                            v3: vertices[v3Index]
+                        });
+                    }
+                });
             });
         });
 
