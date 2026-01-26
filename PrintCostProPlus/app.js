@@ -543,14 +543,26 @@ function updateCalculation() {
     });
 
     let costConsumables = 0;
+    let perJobConsumables = 0;
+    let perUseConsumables = 0;
+
     state.currentCalc.consumables.forEach(cons => {
         if (cons.costType === 'per-job') {
-            costConsumables += cons.cost;
+            perJobConsumables += cons.cost;
         } else {
-            costConsumables += cons.cost / cons.uses;
+            perUseConsumables += cons.cost / cons.uses;
         }
     });
 
+    // Amortize per-job consumables across the job quantity so they are not
+    // multiplied again when computing totals for multiple units.
+    let effectiveQuantity = 1;
+    if (state.currentCalc && typeof state.currentCalc.quantity === 'number' && state.currentCalc.quantity > 0) {
+        effectiveQuantity = state.currentCalc.quantity;
+    }
+
+    const amortizedPerJobConsumables = perJobConsumables / effectiveQuantity;
+    costConsumables = perUseConsumables + amortizedPerJobConsumables;
     const costWear = printTime * state.settings.wearCostPerHour;
 
     let baseSubtotal = costMaterial + costSupport + costElectricity + costDepreciation +
