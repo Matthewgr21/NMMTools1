@@ -83,6 +83,31 @@ const DEFAULT_MATERIALS = [
 // ============================================================================
 // APPLICATION STATE
 // ============================================================================
+// DEFAULT SETTINGS
+// ============================================================================
+const DEFAULT_SETTINGS = {
+    electricityRate: 0.12,
+    designLaborRate: 15,
+    postLaborRate: 12,
+    failureRate: 5,
+    wearCostPerHour: 0.10,
+    overheadPercent: 15,
+    defaultMarginType: 'percentage',
+    defaultMarginValue: 30,
+    currencySymbol: '$',
+    materialTrackingMode: 'simple',
+    // Default estimation settings for 3D model uploads
+    defaultDensity: 1.24,  // PLA density in g/cm³
+    defaultInfillPercent: 20,
+    defaultWallCount: 3,
+    defaultTopBottomLayers: 4,
+    defaultLineWidth: 0.4,
+    defaultLayerHeight: 0.2
+};
+
+// ============================================================================
+// STATE
+// ============================================================================
 let state = {
     printers: [],
     materials: [],
@@ -90,25 +115,7 @@ let state = {
     quotes: [],
     sales: [],
     consumableTemplates: [],
-    settings: {
-        electricityRate: 0.12,
-        designLaborRate: 15,
-        postLaborRate: 12,
-        failureRate: 5,
-        wearCostPerHour: 0.10,
-        overheadPercent: 15,
-        defaultMarginType: 'percentage',
-        defaultMarginValue: 30,
-        currencySymbol: '$',
-        materialTrackingMode: 'simple',
-        // Default estimation settings for 3D model uploads
-        defaultDensity: 1.24,  // PLA density in g/cm³
-        defaultInfillPercent: 20,
-        defaultWallCount: 3,
-        defaultTopBottomLayers: 4,
-        defaultLineWidth: 0.4,
-        defaultLayerHeight: 0.2
-    },
+    settings: { ...DEFAULT_SETTINGS },
     currentCalc: {
         parts: [],
         consumables: [],
@@ -1576,25 +1583,7 @@ function saveSettings() {
 function resetSettings() {
     if (!confirm('Reset all settings to defaults?')) return;
 
-    state.settings = {
-        electricityRate: 0.12,
-        designLaborRate: 15,
-        postLaborRate: 12,
-        failureRate: 5,
-        wearCostPerHour: 0.10,
-        overheadPercent: 15,
-        defaultMarginType: 'percentage',
-        defaultMarginValue: 30,
-        currencySymbol: '$',
-        materialTrackingMode: 'simple',
-        // Default estimation settings for 3D model uploads
-        defaultDensity: 1.24,
-        defaultInfillPercent: 20,
-        defaultWallCount: 3,
-        defaultTopBottomLayers: 4,
-        defaultLineWidth: 0.4,
-        defaultLayerHeight: 0.2
-    };
+    state.settings = { ...DEFAULT_SETTINGS };
 
     saveData(STORAGE_KEYS.SETTINGS, state.settings);
     initSettings();
