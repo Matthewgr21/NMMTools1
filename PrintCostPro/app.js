@@ -472,7 +472,7 @@ function updateCalculation() {
     document.getElementById('costConsumables').textContent = formatCurrency(costConsumables);
     document.getElementById('costWear').textContent = formatCurrency(costWear);
     document.getElementById('costFailure').textContent = formatCurrency(costFailure);
-    document.getElementById('costSubtotal').textContent = formatCurrency(subtotalWithFailure);
+    document.getElementById('costSubtotal').textContent = formatCurrency(baseSubtotal);
     document.getElementById('costOverhead').textContent = formatCurrency(costOverhead);
     document.getElementById('costProfit').textContent = formatCurrency(costProfit);
     document.getElementById('pricePerUnit').textContent = formatCurrency(adjustedPricePerUnit);
