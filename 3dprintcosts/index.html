@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Print Costs - Price Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🖨️ 3D Print Costs</h1>
+            <p class="subtitle">Professional 3D Printing Price Calculator</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="calculator">Calculator</button>
+                <button class="tab-btn" data-tab="materials">Materials</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+                <button class="tab-btn" data-tab="history">History</button>
+            </nav>
+
+            <!-- Calculator Tab -->
+            <section id="calculator" class="tab-content active">
+                <div class="card">
+                    <h2>Print Job Details</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="jobName">Job Name</label>
+                            <input type="text" id="jobName" placeholder="Enter job name">
+                        </div>
+                        <div class="form-group">
+                            <label for="materialSelect">Material</label>
+                            <select id="materialSelect">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filamentUsed">Filament Used (grams)</label>
+                            <input type="number" id="filamentUsed" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="printTime">Print Time (hours)</label>
+                            <input type="number" id="printTime" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="supportMaterial">Support Material (grams)</label>
+                            <input type="number" id="supportMaterial" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="failureRisk">Failure Risk</label>
+                            <select id="failureRisk">
+                                <option value="1.0">Low (0%)</option>
+                                <option value="1.05">Medium (5%)</option>
+                                <option value="1.10" selected>Normal (10%)</option>
+                                <option value="1.15">High (15%)</option>
+                                <option value="1.25">Very High (25%)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="postProcessing">Post-Processing Time (hours)</label>
+                            <input type="number" id="postProcessing" min="0" step="0.25" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" id="quantity" min="1" value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Breakdown -->
+                <div class="card cost-breakdown">
+                    <h2>Cost Breakdown</h2>
+                    <div class="cost-items">
+                        <div class="cost-row">
+                            <span>Material Cost</span>
+                            <span id="materialCost">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Support Material Cost</span>
+                            <span id="supportCost">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Machine Time Cost</span>
+                            <span id="machineCost">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Electricity Cost</span>
+                            <span id="electricityCost">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Labor Cost</span>
+                            <span id="laborCost">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Failure Risk Adjustment</span>
+                            <span id="failureCost">$0.00</span>
+                        </div>
+                        <div class="cost-row subtotal">
+                            <span>Subtotal</span>
+                            <span id="subtotal">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Overhead (<span id="overheadPercent">20</span>%)</span>
+                            <span id="overheadCost">$0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Profit Margin (<span id="profitPercent">30</span>%)</span>
+                            <span id="profitCost">$0.00</span>
+                        </div>
+                        <div class="cost-row total">
+                            <span>Total (per unit)</span>
+                            <span id="totalPerUnit">$0.00</span>
+                        </div>
+                        <div class="cost-row grand-total">
+                            <span>Grand Total (<span id="quantityDisplay">1</span> units)</span>
+                            <span id="grandTotal">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="saveQuote" class="btn btn-primary">Save Quote</button>
+                        <button id="resetCalc" class="btn btn-secondary">Reset</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Materials Tab -->
+            <section id="materials" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Materials Library</h2>
+                        <button id="addMaterial" class="btn btn-primary btn-sm">+ Add Material</button>
+                    </div>
+                    <div id="materialsList" class="materials-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Add/Edit Material Modal -->
+                <div id="materialModal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3 id="modalTitle">Add Material</h3>
+                        <div class="form-group">
+                            <label for="matName">Material Name</label>
+                            <input type="text" id="matName" placeholder="e.g., PLA Basic">
+                        </div>
+                        <div class="form-group">
+                            <label for="matType">Material Type</label>
+                            <select id="matType">
+                                <option value="PLA">PLA</option>
+                                <option value="PETG">PETG</option>
+                                <option value="ABS">ABS</option>
+                                <option value="TPU">TPU</option>
+                                <option value="Nylon">Nylon</option>
+                                <option value="Resin">Resin</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="matCost">Cost per kg ($)</label>
+                            <input type="number" id="matCost" min="0" step="0.01" value="25">
+                        </div>
+                        <div class="form-group">
+                            <label for="matDensity">Density (g/cm³)</label>
+                            <input type="number" id="matDensity" min="0" step="0.01" value="1.24">
+                        </div>
+                        <div class="form-group">
+                            <label for="matColor">Color</label>
+                            <input type="text" id="matColor" placeholder="e.g., Black">
+                        </div>
+                        <div class="modal-actions">
+                            <button id="saveMaterial" class="btn btn-primary">Save</button>
+                            <button id="cancelMaterial" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <div class="card">
+                    <h2>Printer Settings</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="printerName">Printer Name</label>
+                            <input type="text" id="printerName" value="Default Printer">
+                        </div>
+                        <div class="form-group">
+                            <label for="printerCost">Printer Cost ($)</label>
+                            <input type="number" id="printerCost" min="0" step="1" value="500">
+                        </div>
+                        <div class="form-group">
+                            <label for="printerLifespan">Expected Lifespan (hours)</label>
+                            <input type="number" id="printerLifespan" min="1" step="1" value="5000">
+                        </div>
+                        <div class="form-group">
+                            <label for="powerConsumption">Power Consumption (watts)</label>
+                            <input type="number" id="powerConsumption" min="0" step="1" value="150">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Cost Settings</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="electricityRate">Electricity Rate ($/kWh)</label>
+                            <input type="number" id="electricityRate" min="0" step="0.01" value="0.12">
+                        </div>
+                        <div class="form-group">
+                            <label for="laborRate">Labor Rate ($/hour)</label>
+                            <input type="number" id="laborRate" min="0" step="0.5" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label for="overheadRate">Overhead (%)</label>
+                            <input type="number" id="overheadRate" min="0" max="100" step="1" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="profitMargin">Profit Margin (%)</label>
+                            <input type="number" id="profitMargin" min="0" max="100" step="1" value="30">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Currency Settings</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="currency">Currency Symbol</label>
+                            <input type="text" id="currency" value="$" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="saveSettings" class="btn btn-primary">Save Settings</button>
+                        <button id="resetSettings" class="btn btn-secondary">Reset to Defaults</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Data Management</h2>
+                    <div class="action-buttons">
+                        <button id="exportData" class="btn btn-secondary">Export All Data</button>
+                        <button id="importData" class="btn btn-secondary">Import Data</button>
+                        <input type="file" id="importFile" accept=".json" class="hidden">
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Tab -->
+            <section id="history" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Quote History</h2>
+                        <button id="clearHistory" class="btn btn-danger btn-sm">Clear All</button>
+                    </div>
+                    <div id="historyList" class="history-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>3D Print Costs Calculator v1.0 | Data stored locally in your browser</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
