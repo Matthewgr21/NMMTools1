@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Cost Pro+ - 3D Print Cost Calculator with File Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional styles for file upload feature */
+        .file-upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            background-color: var(--bg-input);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .file-upload-zone:hover,
+        .file-upload-zone.dragover {
+            border-color: var(--accent-primary);
+            background-color: var(--bg-hover);
+        }
+
+        .file-upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .file-upload-text {
+            color: var(--text-secondary);
+        }
+
+        .file-upload-text strong {
+            color: var(--accent-primary);
+        }
+
+        .file-info {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .file-info h4 {
+            color: var(--accent-primary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .file-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+        }
+
+        .file-stat {
+            background-color: var(--bg-input);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+        }
+
+        .file-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .file-stat-value {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .estimation-settings {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .estimation-settings h4 {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .apply-estimation-btn {
+            margin-top: var(--spacing-md);
+        }
+
+        .model-preview {
+            background-color: var(--bg-input);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+
+        .badge-plus {
+            background: linear-gradient(135deg, var(--accent-primary), var(--success));
+            color: white;
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: var(--spacing-sm);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">&#9649;</span>
+                <h1>Print Cost Pro<span class="badge-plus">+</span></h1>
+            </div>
+            <div class="header-actions">
+                <button id="exportBtn" class="btn btn-secondary" title="Export Data">
+                    <span>&#8681;</span> Export
+                </button>
+                <button id="importBtn" class="btn btn-secondary" title="Import Data">
+                    <span>&#8679;</span> Import
+                </button>
+                <input type="file" id="importFile" accept=".json" style="display:none">
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="main-nav">
+            <button class="nav-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="nav-btn" data-tab="calculator">Calculator</button>
+            <button class="nav-btn" data-tab="printers">Printers</button>
+            <button class="nav-btn" data-tab="materials">Materials</button>
+            <button class="nav-btn" data-tab="products">Products</button>
+            <button class="nav-btn" data-tab="settings">Settings</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <h2>Dashboard</h2>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card revenue-card">
+                        <h3>Revenue Summary</h3>
+                        <div class="revenue-stats">
+                            <div class="stat">
+                                <span class="stat-label">Total Revenue</span>
+                                <span class="stat-value" id="totalRevenue">$0.00</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Total Profit</span>
+                                <span class="stat-value" id="totalProfit">$0.00</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Items Sold</span>
+                                <span class="stat-value" id="totalItemsSold">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">This Month</span>
+                                <span class="stat-value" id="monthlyRevenue">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Printer Hours</h3>
+                        <div id="printerHoursSummary" class="printer-hours-list">
+                            <p class="empty-state">No printers added yet</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card full-width">
+                        <h3>Recent Quotes</h3>
+                        <div id="recentQuotes" class="quotes-list">
+                            <p class="empty-state">No quotes yet. Create one in the Calculator tab.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calculator Tab -->
+            <section id="calculator" class="tab-content">
+                <h2>Cost Calculator <span class="badge-plus">+ File Analysis</span></h2>
+                <div class="calculator-layout">
+                    <div class="calc-inputs">
+                        <!-- File Upload Section -->
+                        <div class="calc-section">
+                            <h3>3D Model File (Optional)</h3>
+                            <div class="file-upload-zone" id="fileUploadZone">
+                                <input type="file" id="modelFileInput" accept=".stl,.3mf">
+                                <div class="file-upload-icon">&#128206;</div>
+                                <p class="file-upload-text">
+                                    <strong>Click to upload</strong> or drag and drop<br>
+                                    STL or 3MF files
+                                </p>
+                            </div>
+
+                            <!-- File Info Display -->
+                            <div id="fileInfo" class="file-info" style="display: none;">
+                                <h4>
+                                    <span>&#9989;</span>
+                                    <span id="fileName">model.stl</span>
+                                    <button class="btn btn-small btn-danger" id="clearFileBtn" style="margin-left: auto;">Clear</button>
+                                </h4>
+                                <div class="file-info-grid">
+                                    <div class="file-stat">
+                                        <div class="file-stat-label">Volume</div>
+                                        <div class="file-stat-value" id="fileVolume">0 cm³</div>
+                                    </div>
+                                    <div class="file-stat">
+                                        <div class="file-stat-label">Dimensions</div>
+                                        <div class="file-stat-value" id="fileDimensions">0 × 0 × 0 mm</div>
+                                    </div>
+                                    <div class="file-stat">
+                                        <div class="file-stat-label">Surface Area</div>
+                                        <div class="file-stat-value" id="fileSurfaceArea">0 cm²</div>
+                                    </div>
+                                    <div class="file-stat">
+                                        <div class="file-stat-label">Triangles</div>
+                                        <div class="file-stat-value" id="fileTriangles">0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estimation Settings -->
+                            <div id="estimationSettings" class="estimation-settings" style="display: none;">
+                                <h4>Material Estimation Settings</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="infillPercent">Infill (%)</label>
+                                        <input type="number" id="infillPercent" min="0" max="100" value="20">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="wallCount">Wall Lines</label>
+                                        <input type="number" id="wallCount" min="1" max="10" value="3">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="topBottomLayers">Top/Bottom Layers</label>
+                                        <input type="number" id="topBottomLayers" min="1" max="20" value="4">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lineWidth">Line Width (mm)</label>
+                                        <input type="number" id="lineWidth" min="0.1" max="1" step="0.05" value="0.4">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="layerHeight">Layer Height (mm)</label>
+                                        <input type="number" id="layerHeight" min="0.05" max="0.5" step="0.05" value="0.2">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="supportPercent">Support Coverage (%)</label>
+                                        <input type="number" id="supportPercent" min="0" max="100" value="0">
+                                    </div>
+                                </div>
+                                <button type="button" id="applyEstimationBtn" class="btn btn-primary apply-estimation-btn">
+                                    Apply Estimation to Calculator
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Job Info -->
+                        <div class="calc-section">
+                            <h3>Job Information</h3>
+                            <div class="form-group">
+                                <label for="jobName">Job/Item Name</label>
+                                <input type="text" id="jobName" placeholder="Enter job name">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="calcPrinter">Printer</label>
+                                    <select id="calcPrinter">
+                                        <option value="">Select printer...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="calcMaterial">Material</label>
+                                    <select id="calcMaterial">
+                                        <option value="">Select material...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Print Details -->
+                        <div class="calc-section">
+                            <h3>Print Details</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="materialUsed">Material Used (g)</label>
+                                    <input type="number" id="materialUsed" min="0" step="0.1" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="printTime">Print Time (hours)</label>
+                                    <input type="number" id="printTime" min="0" step="0.1" value="0">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="supportMaterial">Support Material (g)</label>
+                                    <input type="number" id="supportMaterial" min="0" step="0.1" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="quantity">Quantity</label>
+                                    <input type="number" id="quantity" min="1" value="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Batch Settings -->
+                        <div class="calc-section">
+                            <h3>Batch Settings</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="itemsPerBatch">Items Per Print Bed</label>
+                                    <input type="number" id="itemsPerBatch" min="1" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bulkDiscount">Bulk Discount (%)</label>
+                                    <input type="number" id="bulkDiscount" min="0" max="100" step="1" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Labor -->
+                        <div class="calc-section">
+                            <h3>Labor</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="designTime">Design/Slicer Time (hours)</label>
+                                    <input type="number" id="designTime" min="0" step="0.25" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="postProcessTime">Post-Processing (hours)</label>
+                                    <input type="number" id="postProcessTime" min="0" step="0.25" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Parts -->
+                        <div class="calc-section">
+                            <h3>Additional Parts & Hardware</h3>
+                            <div id="additionalParts" class="parts-list"></div>
+                            <button type="button" id="addPartBtn" class="btn btn-small">+ Add Part</button>
+                        </div>
+
+                        <!-- Consumables -->
+                        <div class="calc-section">
+                            <h3>Consumables (Paint, Primer, etc.)</h3>
+                            <div id="consumablesList" class="consumables-list"></div>
+                            <button type="button" id="addConsumableBtn" class="btn btn-small">+ Add Consumable</button>
+                        </div>
+
+                        <!-- Profit Margin -->
+                        <div class="calc-section">
+                            <h3>Profit Margin</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="marginType">Margin Type</label>
+                                    <select id="marginType">
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed Amount ($)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="marginValue">Margin Value</label>
+                                    <input type="number" id="marginValue" min="0" step="1" value="30">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Breakdown -->
+                    <div class="calc-results">
+                        <div class="results-card">
+                            <h3>Cost Breakdown</h3>
+                            <div class="cost-line">
+                                <span>Material Cost</span>
+                                <span id="costMaterial">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Support Material</span>
+                                <span id="costSupport">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Electricity</span>
+                                <span id="costElectricity">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Printer Depreciation</span>
+                                <span id="costDepreciation">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Labor (Design)</span>
+                                <span id="costDesignLabor">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Labor (Post-Process)</span>
+                                <span id="costPostLabor">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Additional Parts</span>
+                                <span id="costParts">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Consumables</span>
+                                <span id="costConsumables">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Wear & Maintenance</span>
+                                <span id="costWear">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Failure Rate Adjustment</span>
+                                <span id="costFailure">$0.00</span>
+                            </div>
+                            <div class="cost-line subtotal">
+                                <span>Subtotal (Base Cost)</span>
+                                <span id="costSubtotal">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Overhead</span>
+                                <span id="costOverhead">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Profit Margin</span>
+                                <span id="costProfit">$0.00</span>
+                            </div>
+                            <div class="cost-line total">
+                                <span>Price Per Unit</span>
+                                <span id="pricePerUnit">$0.00</span>
+                            </div>
+                            <div class="cost-line">
+                                <span>Bulk Discount</span>
+                                <span id="bulkDiscountAmount">-$0.00</span>
+                            </div>
+                            <div class="cost-line grand-total">
+                                <span>Grand Total (<span id="totalQty">1</span> items)</span>
+                                <span id="grandTotal">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="results-actions">
+                            <button id="saveQuoteBtn" class="btn btn-primary">Save Quote</button>
+                            <button id="saveProductBtn" class="btn btn-secondary">Save as Product</button>
+                            <button id="copyQuoteBtn" class="btn btn-secondary">Copy to Clipboard</button>
+                            <button id="pdfQuoteBtn" class="btn btn-secondary">Generate PDF</button>
+                            <button id="resetCalcBtn" class="btn btn-danger">Reset</button>
+                        </div>
+
+                        <!-- Quote Preview Modal Trigger -->
+                        <div class="quote-options">
+                            <h4>Customer Quote Options</h4>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showBreakdown" checked>
+                                Show basic breakdown to customer
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Printers Tab -->
+            <section id="printers" class="tab-content">
+                <h2>Printer Management</h2>
+                <div class="section-actions">
+                    <button id="addPrinterBtn" class="btn btn-primary">+ Add Printer</button>
+                </div>
+                <div id="printersList" class="printers-grid">
+                    <p class="empty-state">No printers added yet. Click "Add Printer" to get started.</p>
+                </div>
+            </section>
+
+            <!-- Materials Tab -->
+            <section id="materials" class="tab-content">
+                <h2>Materials Library</h2>
+
+                <!-- Material Tracking Mode -->
+                <div class="tracking-mode-selector">
+                    <label>Tracking Mode:</label>
+                    <select id="materialTrackingMode">
+                        <option value="simple">Simple (Cost per kg)</option>
+                        <option value="detailed">Detailed (Cost + Shipping)</option>
+                        <option value="inventory">Inventory (Track Spools)</option>
+                    </select>
+                </div>
+
+                <div class="section-actions">
+                    <button id="addMaterialBtn" class="btn btn-primary">+ Add Material</button>
+                </div>
+                <div id="materialsList" class="materials-grid">
+                    <p class="empty-state">No materials added yet.</p>
+                </div>
+
+                <h3 class="subsection-title">Saved Consumables</h3>
+                <div class="section-actions">
+                    <button id="addSavedConsumableBtn" class="btn btn-primary">+ Add Consumable Template</button>
+                </div>
+                <div id="savedConsumablesList" class="consumables-grid">
+                    <p class="empty-state">No consumable templates saved.</p>
+                </div>
+            </section>
+
+            <!-- Products Tab -->
+            <section id="products" class="tab-content">
+                <h2>Products & Sales</h2>
+
+                <div class="products-section">
+                    <h3>Saved Products</h3>
+                    <div id="productsList" class="products-grid">
+                        <p class="empty-state">No products saved yet. Save a calculation as a product from the Calculator.</p>
+                    </div>
+                </div>
+
+                <div class="sales-section">
+                    <h3>Sales History</h3>
+                    <div class="sales-filters">
+                        <select id="salesProductFilter">
+                            <option value="all">All Products</option>
+                        </select>
+                        <input type="month" id="salesMonthFilter">
+                    </div>
+                    <div id="salesList" class="sales-list">
+                        <p class="empty-state">No sales recorded yet.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <h2>Settings</h2>
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>Electricity</h3>
+                        <div class="form-group">
+                            <label for="electricityRate">Rate ($/kWh)</label>
+                            <input type="number" id="electricityRate" min="0" step="0.01" value="0.12">
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Labor Rates</h3>
+                        <div class="form-group">
+                            <label for="designLaborRate">Design/Slicer Rate ($/hour)</label>
+                            <input type="number" id="designLaborRate" min="0" step="0.5" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label for="postLaborRate">Post-Processing Rate ($/hour)</label>
+                            <input type="number" id="postLaborRate" min="0" step="0.5" value="12">
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Cost Adjustments</h3>
+                        <div class="form-group">
+                            <label for="failureRate">Failure Rate (%)</label>
+                            <input type="number" id="failureRate" min="0" max="50" step="1" value="5">
+                            <small>Accounts for failed prints (adhesion issues, spaghetti, etc.)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="wearCostPerHour">Wear & Maintenance ($/hour)</label>
+                            <input type="number" id="wearCostPerHour" min="0" step="0.01" value="0.10">
+                            <small>Nozzles, FEP sheets, belts, build plates, etc.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="overheadPercent">Overhead (%)</label>
+                            <input type="number" id="overheadPercent" min="0" max="100" step="1" value="15">
+                            <small>Rent, utilities, workspace, insurance, etc.</small>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Default Profit Margin</h3>
+                        <div class="form-group">
+                            <label for="defaultMarginType">Default Type</label>
+                            <select id="defaultMarginType">
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount ($)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="defaultMarginValue">Default Value</label>
+                            <input type="number" id="defaultMarginValue" min="0" step="1" value="30">
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Currency</h3>
+                        <div class="form-group">
+                            <label for="currencySymbol">Currency Symbol</label>
+                            <input type="text" id="currencySymbol" value="$" maxlength="3">
+                        </div>
+                    </div>
+
+                    <div class="settings-card full-width">
+                        <h3>Data Management</h3>
+                        <div class="data-actions">
+                            <button id="resetSettingsBtn" class="btn btn-danger">Reset to Defaults</button>
+                            <button id="clearAllDataBtn" class="btn btn-danger">Clear All Data</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Print Cost Pro+ v1.0 | 3D Print Cost Calculator with File Analysis</p>
+        </footer>
+    </div>
+
+    <!-- Modals (same as standard version) -->
+    <!-- Add/Edit Printer Modal -->
+    <div id="printerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="printerModalTitle">Add Printer</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="printerPreset">Load from Preset</label>
+                    <select id="printerPreset">
+                        <option value="">-- Custom Printer --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="printerName">Printer Name *</label>
+                    <input type="text" id="printerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="printerType">Printer Type *</label>
+                    <select id="printerType" required>
+                        <option value="FDM">FDM (Filament)</option>
+                        <option value="Resin">Resin (SLA/MSLA)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="printerCost">Purchase Price ($)</label>
+                        <input type="number" id="printerCost" min="0" step="1" value="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="printerLifespan">Lifespan (hours)</label>
+                        <input type="number" id="printerLifespan" min="1" step="100" value="5000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="printerWattage">Avg Wattage (W)</label>
+                        <input type="number" id="printerWattage" min="0" step="1" value="150">
+                    </div>
+                    <div class="form-group">
+                        <label for="printerPeakWattage">Peak Wattage (W)</label>
+                        <input type="number" id="printerPeakWattage" min="0" step="1" value="350">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="printerMaintenanceCost">Maintenance Budget ($)</label>
+                        <input type="number" id="printerMaintenanceCost" min="0" step="1" value="50">
+                        <small>Annual maintenance/upgrades</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="printerHoursUsed">Hours Used</label>
+                        <input type="number" id="printerHoursUsed" min="0" step="1" value="0">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="savePrinterBtn" class="btn btn-primary">Save Printer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Material Modal -->
+    <div id="materialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="materialModalTitle">Add Material</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="materialName">Material Name *</label>
+                    <input type="text" id="materialName" required placeholder="e.g., Hatchbox PLA Black">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="materialType">Type</label>
+                        <select id="materialType">
+                            <option value="PLA">PLA</option>
+                            <option value="PLA+">PLA+</option>
+                            <option value="PLA Silk">PLA Silk</option>
+                            <option value="PLA Matte">PLA Matte</option>
+                            <option value="PETG">PETG</option>
+                            <option value="ABS">ABS</option>
+                            <option value="ASA">ASA</option>
+                            <option value="TPU">TPU</option>
+                            <option value="Nylon">Nylon</option>
+                            <option value="PC">Polycarbonate</option>
+                            <option value="Resin Standard">Resin - Standard</option>
+                            <option value="Resin ABS-Like">Resin - ABS-Like</option>
+                            <option value="Resin Water Washable">Resin - Water Washable</option>
+                            <option value="Resin Tough">Resin - Tough</option>
+                            <option value="Resin Flexible">Resin - Flexible</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="materialColor">Color</label>
+                        <input type="text" id="materialColor" placeholder="e.g., Black">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="materialCostPerKg">Cost per kg ($)</label>
+                        <input type="number" id="materialCostPerKg" min="0" step="0.01" value="25">
+                    </div>
+                    <div class="form-group">
+                        <label for="materialDensity">Density (g/cm³)</label>
+                        <input type="number" id="materialDensity" min="0" step="0.01" value="1.24">
+                    </div>
+                </div>
+
+                <!-- Detailed Mode Fields -->
+                <div id="detailedMaterialFields" class="conditional-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialSpoolWeight">Spool Weight (g)</label>
+                            <input type="number" id="materialSpoolWeight" min="0" step="1" value="1000">
+                        </div>
+                        <div class="form-group">
+                            <label for="materialShipping">Shipping Cost ($)</label>
+                            <input type="number" id="materialShipping" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Mode Fields -->
+                <div id="inventoryMaterialFields" class="conditional-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialQuantityOwned">Spools Owned</label>
+                            <input type="number" id="materialQuantityOwned" min="0" step="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="materialRemainingGrams">Remaining (g)</label>
+                            <input type="number" id="materialRemainingGrams" min="0" step="1" value="1000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="materialPurchaseDate">Purchase Date</label>
+                        <input type="date" id="materialPurchaseDate">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="saveMaterialBtn" class="btn btn-primary">Save Material</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Part Modal -->
+    <div id="partModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Add Part/Hardware</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="partName">Part Name</label>
+                    <input type="text" id="partName" placeholder="e.g., M3 Bolt, Heat Insert">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="partCost">Cost per Unit ($)</label>
+                        <input type="number" id="partCost" min="0" step="0.01" value="0.10">
+                    </div>
+                    <div class="form-group">
+                        <label for="partQuantity">Quantity Needed</label>
+                        <input type="number" id="partQuantity" min="1" step="1" value="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="savePartBtn" class="btn btn-primary">Add Part</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Consumable Modal -->
+    <div id="consumableModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Add Consumable</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="consumableTemplate">Load from Saved</label>
+                    <select id="consumableTemplate">
+                        <option value="">-- New Consumable --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="consumableName">Name</label>
+                    <input type="text" id="consumableName" placeholder="e.g., Spray Paint, Primer">
+                </div>
+                <div class="form-group">
+                    <label for="consumableCostType">Cost Type</label>
+                    <select id="consumableCostType">
+                        <option value="per-job">Per Job (one-time use)</option>
+                        <option value="spread">Spread Across Jobs</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="consumableCost">Total Cost ($)</label>
+                        <input type="number" id="consumableCost" min="0" step="0.01" value="5">
+                    </div>
+                    <div class="form-group" id="consumableUsesGroup">
+                        <label for="consumableUses">Expected Uses</label>
+                        <input type="number" id="consumableUses" min="1" step="1" value="10">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="saveConsumableBtn" class="btn btn-primary">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productModalTitle">Save as Product</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <input type="text" id="productCategory" placeholder="e.g., Figurines, Tools, Gadgets">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="saveProductConfirmBtn" class="btn btn-primary">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Sale Modal -->
+    <div id="saleModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Record Sale</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="saleQuantity">Quantity Sold</label>
+                    <input type="number" id="saleQuantity" min="1" step="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="salePrice">Sale Price ($)</label>
+                    <input type="number" id="salePrice" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="saleDate">Sale Date</label>
+                    <input type="date" id="saleDate">
+                </div>
+                <div class="form-group">
+                    <label for="saleNotes">Notes</label>
+                    <input type="text" id="saleNotes" placeholder="Customer name, platform, etc.">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="saveSaleBtn" class="btn btn-primary">Record Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumable Template Modal -->
+    <div id="consumableTemplateModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Save Consumable Template</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="templateName">Name *</label>
+                    <input type="text" id="templateName" placeholder="e.g., Rustoleum Primer">
+                </div>
+                <div class="form-group">
+                    <label for="templateCost">Cost ($)</label>
+                    <input type="number" id="templateCost" min="0" step="0.01" value="8">
+                </div>
+                <div class="form-group">
+                    <label for="templateUses">Expected Uses</label>
+                    <input type="number" id="templateUses" min="1" step="1" value="20">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                <button type="button" id="saveTemplateBtn" class="btn btn-primary">Save Template</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="stl-parser.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
