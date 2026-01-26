@@ -622,6 +622,21 @@ function saveQuote() {
         breakdown: { ...state.currentCalc.results },
         parts: [...state.currentCalc.parts],
         consumables: [...state.currentCalc.consumables],
+        calculatorState: {
+            printerId: document.getElementById('calcPrinter').value,
+            materialId: document.getElementById('calcMaterial').value,
+            materialUsed: document.getElementById('materialUsed').value,
+            printTime: document.getElementById('printTime').value,
+            supportMaterial: document.getElementById('supportMaterial').value,
+            itemsPerBatch: document.getElementById('itemsPerBatch').value,
+            bulkDiscount: document.getElementById('bulkDiscount').value,
+            designTime: document.getElementById('designTime').value,
+            postProcessTime: document.getElementById('postProcessTime').value,
+            parts: [...state.currentCalc.parts],
+            consumables: [...state.currentCalc.consumables],
+            marginType: document.getElementById('marginType').value,
+            marginValue: document.getElementById('marginValue').value
+        },
         date: new Date().toISOString()
     };
 
@@ -637,13 +652,35 @@ function loadQuoteToCalculator(quoteId) {
 
     switchTab('calculator');
 
-    document.getElementById('jobName').value = quote.jobName;
-    document.getElementById('materialUsed').value = quote.materialUsed;
-    document.getElementById('printTime').value = quote.printTime;
-    document.getElementById('quantity').value = quote.quantity;
+    // If quote has full calculator state, restore it (newer format)
+    if (quote.calculatorState) {
+        const cs = quote.calculatorState;
+        document.getElementById('jobName').value = quote.jobName;
+        document.getElementById('calcPrinter').value = cs.printerId || '';
+        document.getElementById('calcMaterial').value = cs.materialId || '';
+        document.getElementById('materialUsed').value = cs.materialUsed || 0;
+        document.getElementById('printTime').value = cs.printTime || 0;
+        document.getElementById('supportMaterial').value = cs.supportMaterial || 0;
+        document.getElementById('itemsPerBatch').value = cs.itemsPerBatch || 1;
+        document.getElementById('bulkDiscount').value = cs.bulkDiscount || 0;
+        document.getElementById('designTime').value = cs.designTime || 0;
+        document.getElementById('postProcessTime').value = cs.postProcessTime || 0;
+        document.getElementById('marginType').value = cs.marginType || 'percentage';
+        document.getElementById('marginValue').value = cs.marginValue || 30;
+        document.getElementById('quantity').value = quote.quantity;
 
-    state.currentCalc.parts = [...(quote.parts || [])];
-    state.currentCalc.consumables = [...(quote.consumables || [])];
+        state.currentCalc.parts = [...(cs.parts || [])];
+        state.currentCalc.consumables = [...(cs.consumables || [])];
+    } else {
+        // Fallback for older quotes without full calculator state
+        document.getElementById('jobName').value = quote.jobName;
+        document.getElementById('materialUsed').value = quote.materialUsed;
+        document.getElementById('printTime').value = quote.printTime;
+        document.getElementById('quantity').value = quote.quantity;
+
+        state.currentCalc.parts = [...(quote.parts || [])];
+        state.currentCalc.consumables = [...(quote.consumables || [])];
+    }
 
     renderParts();
     renderConsumables();
