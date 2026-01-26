@@ -405,9 +405,11 @@ function updateCalculation() {
 
     // Consumables cost
     let costConsumables = 0;
+    const jobQuantity = (state.currentCalc && state.currentCalc.quantity) ? state.currentCalc.quantity : 1;
     state.currentCalc.consumables.forEach(cons => {
         if (cons.costType === 'per-job') {
-            costConsumables += cons.cost;
+            // Spread one-time per-job consumable cost across all units in the job
+            costConsumables += cons.cost / jobQuantity;
         } else {
             costConsumables += cons.cost / cons.uses;
         }
