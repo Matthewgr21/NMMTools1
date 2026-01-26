@@ -100,7 +100,14 @@ let state = {
         defaultMarginType: 'percentage',
         defaultMarginValue: 30,
         currencySymbol: '$',
-        materialTrackingMode: 'simple'
+        materialTrackingMode: 'simple',
+        // Default estimation settings for 3D model uploads
+        defaultDensity: 1.24,  // PLA density in g/cm³
+        defaultInfillPercent: 20,
+        defaultWallCount: 3,
+        defaultTopBottomLayers: 4,
+        defaultLineWidth: 0.4,
+        defaultLayerHeight: 0.2
     },
     currentCalc: {
         parts: [],
@@ -142,7 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDashboard();
 
     // Initialize model parser
-    modelParser = new ModelParser();
+    try {
+        modelParser = new ModelParser();
+    } catch (error) {
+        console.error('Failed to initialize ModelParser:', error);
+        alert('3D model parser unavailable. File upload feature disabled.');
+    }
 });
 
 // ============================================================================
@@ -153,6 +165,12 @@ function initFileUpload() {
     const fileInput = document.getElementById('modelFileInput');
     const clearBtn = document.getElementById('clearFileBtn');
     const applyBtn = document.getElementById('applyEstimationBtn');
+
+    // Check if required elements exist
+    if (!uploadZone || !fileInput || !clearBtn || !applyBtn) {
+        console.warn('File upload UI elements not found in DOM. File upload feature disabled.');
+        return;
+    }
 
     // Click to upload
     uploadZone.addEventListener('click', () => fileInput.click());
@@ -206,6 +224,13 @@ async function handleFileUpload(file) {
         return;
     }
 
+    // Check file size (max 50MB)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+        alert('File too large. Maximum size: 50MB');
+        return;
+    }
+
     try {
         // Show loading state
         document.getElementById('fileUploadZone').style.display = 'none';
@@ -233,28 +258,34 @@ async function handleFileUpload(file) {
 }
 
 function displayFileInfo(modelData) {
-    document.getElementById('fileName').textContent = modelData.filename;
-    document.getElementById('fileVolume').textContent = `${modelData.volume.toFixed(2)} cm³`;
-    document.getElementById('fileDimensions').textContent =
-        `${modelData.dimensions.x.toFixed(1)} × ${modelData.dimensions.y.toFixed(1)} × ${modelData.dimensions.z.toFixed(1)} mm`;
-    document.getElementById('fileSurfaceArea').textContent = `${modelData.surfaceArea.toFixed(2)} cm²`;
-    document.getElementById('fileTriangles').textContent = modelData.triangleCount.toLocaleString();
+    if (!modelData) return;
+    
+    document.getElementById('fileName').textContent = modelData.filename || 'Unknown';
+    document.getElementById('fileVolume').textContent = modelData.volume != null 
+        ? `${modelData.volume.toFixed(2)} cm³` : 'N/A';
+    document.getElementById('fileDimensions').textContent = modelData.dimensions 
+        ? `${(modelData.dimensions.x || 0).toFixed(1)} × ${(modelData.dimensions.y || 0).toFixed(1)} × ${(modelData.dimensions.z || 0).toFixed(1)} mm`
+        : 'N/A';
+    document.getElementById('fileSurfaceArea').textContent = modelData.surfaceArea != null
+        ? `${modelData.surfaceArea.toFixed(2)} cm²` : 'N/A';
+    document.getElementById('fileTriangles').textContent = modelData.triangleCount 
+        ? modelData.triangleCount.toLocaleString() : '0';
 }
 
 function updateEstimationPreview() {
-    if (!state.currentCalc.modelData || !modelParser.modelData) return;
+    if (!modelParser || !state.currentCalc.modelData || !modelParser.modelData) return;
 
     // Get material density from selected material
     const materialId = document.getElementById('calcMaterial').value;
     const material = state.materials.find(m => m.id === materialId);
-    const density = material ? material.density : 1.24;
+    const density = material ? material.density : state.settings.defaultDensity;
 
     const settings = {
-        infillPercent: parseFloat(document.getElementById('infillPercent').value) || 20,
-        wallCount: parseInt(document.getElementById('wallCount').value) || 3,
-        topBottomLayers: parseInt(document.getElementById('topBottomLayers').value) || 4,
-        lineWidth: parseFloat(document.getElementById('lineWidth').value) || 0.4,
-        layerHeight: parseFloat(document.getElementById('layerHeight').value) || 0.2
+        infillPercent: parseFloat(document.getElementById('infillPercent').value) || state.settings.defaultInfillPercent,
+        wallCount: parseInt(document.getElementById('wallCount').value) || state.settings.defaultWallCount,
+        topBottomLayers: parseInt(document.getElementById('topBottomLayers').value) || state.settings.defaultTopBottomLayers,
+        lineWidth: parseFloat(document.getElementById('lineWidth').value) || state.settings.defaultLineWidth,
+        layerHeight: parseFloat(document.getElementById('layerHeight').value) || state.settings.defaultLayerHeight
     };
 
     const supportPercent = parseFloat(document.getElementById('supportPercent').value) || 0;
@@ -271,6 +302,7 @@ function updateEstimationPreview() {
         };
     } catch (error) {
         console.error('Estimation error:', error);
+        alert('Error calculating estimation: ' + error.message);
     }
 }
 
@@ -883,6 +915,11 @@ function generatePDF() {
     `;
 
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Popup blocked. Please allow popups and try again.');
+        return;
+    }
+    printWindow.document.open();
     printWindow.document.write(content);
     printWindow.document.close();
     printWindow.print();
@@ -1549,7 +1586,14 @@ function resetSettings() {
         defaultMarginType: 'percentage',
         defaultMarginValue: 30,
         currencySymbol: '$',
-        materialTrackingMode: 'simple'
+        materialTrackingMode: 'simple',
+        // Default estimation settings for 3D model uploads
+        defaultDensity: 1.24,
+        defaultInfillPercent: 20,
+        defaultWallCount: 3,
+        defaultTopBottomLayers: 4,
+        defaultLineWidth: 0.4,
+        defaultLayerHeight: 0.2
     };
 
     saveData(STORAGE_KEYS.SETTINGS, state.settings);
