@@ -347,7 +347,6 @@ function populateCalculatorDropdowns() {
 }
 
 function updateCalculation() {
-    const currency = state.settings.currencySymbol;
 
     // Get inputs
     const printerId = document.getElementById('calcPrinter').value;
