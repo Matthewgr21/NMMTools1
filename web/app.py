@@ -1,6 +1,6 @@
 """
 NMM System Toolkit - Web Intranet Edition
-Version 8.0 Web
+Version 8.2
 Enterprise IT Administration Portal
 
 A comprehensive web-based IT administration toolkit designed for
@@ -42,7 +42,7 @@ logger = logging.getLogger('NMMToolkit')
 # Configuration
 CONFIG = {
     'APP_NAME': 'NMM System Toolkit',
-    'VERSION': '8.0 Web',
+    'VERSION': '8.2',
     'EDITION': 'Intranet Portal Edition',
     'POWERSHELL_PATH': r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
     'SCRIPT_PATH': os.path.join(os.path.dirname(os.path.dirname(__file__)), 'NMMTools_v7.5_DEPLOYMENT_READY.ps1'),
@@ -144,35 +144,49 @@ TOOL_CATEGORIES = {
             {'id': 'windows_updates', 'name': 'Windows Updates', 'description': 'Update history and pending updates', 'admin_required': False},
             {'id': 'user_accounts', 'name': 'User Account Info', 'description': 'Local user accounts and group memberships', 'admin_required': True},
             {'id': 'system_health', 'name': 'System Health Check', 'description': 'Comprehensive system health assessment', 'admin_required': False},
-            {'id': 'security_analysis', 'name': 'Security Analysis', 'description': 'Security settings and vulnerability check', 'admin_required': True},
             {'id': 'driver_info', 'name': 'Driver Information', 'description': 'Installed drivers and version details', 'admin_required': False},
             {'id': 'startup_programs', 'name': 'Startup Programs', 'description': 'Programs that run at Windows startup', 'admin_required': False},
             {'id': 'scheduled_tasks', 'name': 'Scheduled Tasks', 'description': 'View scheduled tasks and their status', 'admin_required': True},
             {'id': 'system_uptime', 'name': 'System Uptime', 'description': 'How long the system has been running', 'admin_required': False},
         ]
     },
-    'cloud_collaboration': {
-        'name': 'Cloud & Collaboration',
-        'icon': 'bi-cloud',
+    'microsoft_365': {
+        'name': 'Microsoft 365 & Office',
+        'icon': 'bi-microsoft',
         'color': 'info',
-        'description': 'Microsoft 365, Azure AD, and cloud service tools',
+        'description': 'All Microsoft 365, Office, Outlook, Teams, and OneDrive tools',
         'tools': [
-            {'id': 'azure_ad_health', 'name': 'Azure AD Health Check', 'description': 'Azure Active Directory connectivity and status', 'admin_required': False},
             {'id': 'o365_health', 'name': 'Office 365 Health', 'description': 'Microsoft 365 apps health and repair options', 'admin_required': False},
-            {'id': 'onedrive_health', 'name': 'OneDrive Health', 'description': 'OneDrive sync status and troubleshooting', 'admin_required': False},
+            {'id': 'fix_office', 'name': 'Fix Office Issues', 'description': 'Automated Microsoft Office repair', 'admin_required': False},
+            {'id': 'fix_outlook_search', 'name': 'Fix Outlook Search', 'description': 'Repair Outlook search by rebuilding index and resetting search folders', 'admin_required': True},
             {'id': 'teams_cache', 'name': 'Teams Cache Management', 'description': 'Clear Microsoft Teams cache and reset', 'admin_required': False},
+            {'id': 'fix_teams', 'name': 'Fix Teams Issues', 'description': 'Automated Microsoft Teams repair', 'admin_required': False},
+            {'id': 'onedrive_health', 'name': 'OneDrive Health', 'description': 'OneDrive sync status and troubleshooting', 'admin_required': False},
+            {'id': 'fix_onedrive', 'name': 'Fix OneDrive Issues', 'description': 'Automated OneDrive troubleshooting', 'admin_required': False},
             {'id': 'm365_connectivity', 'name': 'M365 Connectivity Test', 'description': 'Test connectivity to Microsoft 365 services', 'admin_required': False},
+            {'id': 'azure_ad_health', 'name': 'Azure AD / Entra Health', 'description': 'Azure Active Directory / Entra ID connectivity and status', 'admin_required': False},
+            {'id': 'intune_health', 'name': 'Intune/MDM Health', 'description': 'Mobile device management status', 'admin_required': False},
+        ]
+    },
+    'security_encryption': {
+        'name': 'Security & Encryption',
+        'icon': 'bi-shield-lock',
+        'color': 'danger',
+        'description': 'BitLocker encryption, security settings, and credential management',
+        'tools': [
+            {'id': 'bitlocker_status', 'name': 'BitLocker Status', 'description': 'View disk encryption status and protection details', 'admin_required': True},
+            {'id': 'bitlocker_encrypt', 'name': 'BitLocker Encrypt Drive', 'description': 'Encrypt drive with BitLocker and backup key to Azure/Entra', 'admin_required': True},
+            {'id': 'bitlocker_decrypt', 'name': 'BitLocker Decrypt Drive', 'description': 'Remove BitLocker encryption from drive', 'admin_required': True},
+            {'id': 'security_analysis', 'name': 'Security Analysis', 'description': 'Security settings and vulnerability check', 'admin_required': True},
             {'id': 'credential_manager', 'name': 'Credential Manager', 'description': 'View and manage stored credentials', 'admin_required': True},
             {'id': 'mfa_status', 'name': 'MFA Status', 'description': 'Multi-factor authentication verification', 'admin_required': False},
-            {'id': 'group_policy', 'name': 'Group Policy Update', 'description': 'Force group policy refresh', 'admin_required': True},
-            {'id': 'intune_health', 'name': 'Intune/MDM Health', 'description': 'Mobile device management status', 'admin_required': False},
             {'id': 'windows_hello', 'name': 'Windows Hello Status', 'description': 'Biometric authentication status', 'admin_required': False},
         ]
     },
     'advanced_repair': {
         'name': 'Advanced System Repair',
         'icon': 'bi-wrench-adjustable',
-        'color': 'danger',
+        'color': 'warning',
         'description': 'Advanced repair tools requiring administrator privileges',
         'tools': [
             {'id': 'dism_repair', 'name': 'DISM System Image Repair', 'description': 'Repair Windows system image', 'admin_required': True},
@@ -183,6 +197,7 @@ TOOL_CATEGORIES = {
             {'id': 'driver_integrity', 'name': 'Driver Integrity Scan', 'description': 'Verify driver file integrity', 'admin_required': True},
             {'id': 'component_cleanup', 'name': 'Component Store Cleanup', 'description': 'Clean Windows component store', 'admin_required': True},
             {'id': 'bsod_analysis', 'name': 'BSOD Crash Analysis', 'description': 'Analyze blue screen crash dumps', 'admin_required': True},
+            {'id': 'search_rebuild', 'name': 'Windows Search Rebuild', 'description': 'Rebuild Windows Search index', 'admin_required': True},
         ]
     },
     'laptop_mobile': {
@@ -195,7 +210,6 @@ TOOL_CATEGORIES = {
             {'id': 'wifi_diagnostics', 'name': 'Wi-Fi Diagnostics', 'description': 'Wireless network troubleshooting', 'admin_required': False},
             {'id': 'vpn_health', 'name': 'VPN Health Check', 'description': 'VPN connection status and troubleshooting', 'admin_required': False},
             {'id': 'webcam_audio', 'name': 'Webcam & Audio Test', 'description': 'Test camera and audio devices', 'admin_required': False},
-            {'id': 'bitlocker_status', 'name': 'BitLocker Status', 'description': 'Disk encryption status and recovery', 'admin_required': True},
             {'id': 'power_plans', 'name': 'Power Management', 'description': 'Power plan settings and optimization', 'admin_required': False},
             {'id': 'docking_station', 'name': 'Docking Station Config', 'description': 'Docking station troubleshooting', 'admin_required': False},
             {'id': 'bluetooth', 'name': 'Bluetooth Management', 'description': 'Bluetooth device pairing and status', 'admin_required': False},
@@ -204,10 +218,35 @@ TOOL_CATEGORIES = {
             {'id': 'travel_readiness', 'name': 'Travel Readiness', 'description': 'Pre-travel system check', 'admin_required': False},
         ]
     },
+    'common_issues': {
+        'name': 'Common Issues & Quick Fixes',
+        'icon': 'bi-lightning',
+        'color': 'secondary',
+        'description': 'Quick fixes for common IT issues',
+        'tools': [
+            {'id': 'printer_troubleshoot', 'name': 'Printer Troubleshooting', 'description': 'Fix common printer issues', 'admin_required': False},
+            {'id': 'performance_optimize', 'name': 'Performance Optimization', 'description': 'Optimize system performance', 'admin_required': False},
+            {'id': 'start_menu_repair', 'name': 'Start Menu Repair', 'description': 'Fix Start Menu and Taskbar issues', 'admin_required': False},
+            {'id': 'audio_troubleshoot', 'name': 'Audio Troubleshooting', 'description': 'Advanced audio device fixes', 'admin_required': False},
+            {'id': 'fix_av', 'name': 'Fix Audio/Video', 'description': 'Prepare system for video calls', 'admin_required': False},
+            {'id': 'explorer_reset', 'name': 'Windows Explorer Reset', 'description': 'Reset Windows Explorer shell', 'admin_required': False},
+            {'id': 'network_drive_repair', 'name': 'Network Drive Repair', 'description': 'Fix mapped network drive issues', 'admin_required': False},
+            {'id': 'file_association', 'name': 'File Association Reset', 'description': 'Reset default file type associations', 'admin_required': False},
+            {'id': 'display_config', 'name': 'Display Configuration', 'description': 'Fix display and monitor settings', 'admin_required': False},
+            {'id': 'profile_cleanup', 'name': 'Profile Cache Cleanup', 'description': 'Clean user profile caches', 'admin_required': False},
+            {'id': 'fix_login', 'name': 'Fix Login Issues', 'description': 'Automated login troubleshooting', 'admin_required': False},
+            {'id': 'fix_wifi', 'name': 'Fix Wi-Fi Issues', 'description': 'Automated Wi-Fi repair', 'admin_required': False},
+            {'id': 'fix_vpn', 'name': 'Fix VPN Issues', 'description': 'Automated VPN troubleshooting', 'admin_required': False},
+            {'id': 'fix_dock', 'name': 'Fix Docking Station', 'description': 'Automated docking station repair', 'admin_required': False},
+            {'id': 'fix_network', 'name': 'Reset Network Stack', 'description': 'Complete network stack reset', 'admin_required': True},
+            {'id': 'domain_trust', 'name': 'Domain Trust Repair', 'description': 'Fix domain trust relationship', 'admin_required': True},
+            {'id': 'group_policy', 'name': 'Group Policy Update', 'description': 'Force group policy refresh', 'admin_required': True},
+        ]
+    },
     'browser_tools': {
         'name': 'Browser & Data Tools',
         'icon': 'bi-globe',
-        'color': 'warning',
+        'color': 'dark',
         'description': 'Browser management and data tools',
         'tools': [
             {'id': 'browser_backup', 'name': 'Browser Backup', 'description': 'Backup browser profiles (Chrome, Edge, Firefox, Brave)', 'admin_required': False},
@@ -215,47 +254,10 @@ TOOL_CATEGORIES = {
             {'id': 'browser_cache_clear', 'name': 'Clear Browser Cache', 'description': 'Clear cache while preserving passwords', 'admin_required': False},
         ]
     },
-    'common_issues': {
-        'name': 'Common User Issues',
-        'icon': 'bi-question-circle',
-        'color': 'secondary',
-        'description': 'Quick fixes for common IT issues',
-        'tools': [
-            {'id': 'printer_troubleshoot', 'name': 'Printer Troubleshooting', 'description': 'Fix common printer issues', 'admin_required': False},
-            {'id': 'performance_optimize', 'name': 'Performance Optimization', 'description': 'Optimize system performance', 'admin_required': False},
-            {'id': 'search_rebuild', 'name': 'Windows Search Rebuild', 'description': 'Rebuild Windows Search index', 'admin_required': True},
-            {'id': 'fix_outlook_search', 'name': 'Fix Outlook Search', 'description': 'Repair Outlook search by rebuilding index and resetting search folders', 'admin_required': True},
-            {'id': 'start_menu_repair', 'name': 'Start Menu Repair', 'description': 'Fix Start Menu and Taskbar issues', 'admin_required': False},
-            {'id': 'audio_troubleshoot', 'name': 'Audio Troubleshooting', 'description': 'Advanced audio device fixes', 'admin_required': False},
-            {'id': 'explorer_reset', 'name': 'Windows Explorer Reset', 'description': 'Reset Windows Explorer shell', 'admin_required': False},
-            {'id': 'network_drive_repair', 'name': 'Network Drive Repair', 'description': 'Fix mapped network drive issues', 'admin_required': False},
-            {'id': 'file_association', 'name': 'File Association Reset', 'description': 'Reset default file type associations', 'admin_required': False},
-            {'id': 'display_config', 'name': 'Display Configuration', 'description': 'Fix display and monitor settings', 'admin_required': False},
-            {'id': 'profile_cleanup', 'name': 'Profile Cache Cleanup', 'description': 'Clean user profile caches', 'admin_required': False},
-        ]
-    },
-    'quick_fixes': {
-        'name': 'Quick Fixes',
-        'icon': 'bi-lightning',
-        'color': 'dark',
-        'description': 'One-click automated repair functions',
-        'tools': [
-            {'id': 'fix_office', 'name': 'Fix Office Issues', 'description': 'Automated Microsoft Office repair', 'admin_required': False},
-            {'id': 'fix_onedrive', 'name': 'Fix OneDrive Issues', 'description': 'Automated OneDrive troubleshooting', 'admin_required': False},
-            {'id': 'fix_teams', 'name': 'Fix Teams Issues', 'description': 'Automated Microsoft Teams repair', 'admin_required': False},
-            {'id': 'fix_login', 'name': 'Fix Login Issues', 'description': 'Automated login troubleshooting', 'admin_required': False},
-            {'id': 'fix_wifi', 'name': 'Fix Wi-Fi Issues', 'description': 'Automated Wi-Fi repair', 'admin_required': False},
-            {'id': 'fix_vpn', 'name': 'Fix VPN Issues', 'description': 'Automated VPN troubleshooting', 'admin_required': False},
-            {'id': 'fix_av', 'name': 'Fix Audio/Video', 'description': 'Prepare system for video calls', 'admin_required': False},
-            {'id': 'fix_dock', 'name': 'Fix Docking Station', 'description': 'Automated docking station repair', 'admin_required': False},
-            {'id': 'fix_network', 'name': 'Reset Network Stack', 'description': 'Complete network stack reset', 'admin_required': True},
-            {'id': 'domain_trust', 'name': 'Domain Trust Repair', 'description': 'Fix domain trust relationship', 'admin_required': True},
-        ]
-    },
     'it_admin': {
         'name': 'IT Administration',
-        'icon': 'bi-shield-lock',
-        'color': 'danger',
+        'icon': 'bi-gear-wide-connected',
+        'color': 'primary',
         'description': 'Administrative tools for IT deployment and management',
         'tools': [
             {'id': 'enable_winrm', 'name': 'Enable Remote Management', 'description': 'Enable WinRM on target computer (uses WMI, no prior WinRM needed)', 'admin_required': True},
@@ -427,7 +429,7 @@ TOOL_COMMANDS = {
         Write-Host "Uptime: $($uptime.Days) days, $($uptime.Hours) hours, $($uptime.Minutes) minutes"
     ''',
 
-    # Cloud & Collaboration
+    # Microsoft 365 & Office
     'azure_ad_health': 'dsregcmd /status',
     'o365_health': '''
         Write-Host "=== Office 365 Apps Status ===" -ForegroundColor Cyan
@@ -461,151 +463,28 @@ TOOL_COMMANDS = {
             else{ Write-Host "$endpoint : Failed" -ForegroundColor Red }
         }
     ''',
-    'credential_manager': 'cmdkey /list',
-    'mfa_status': 'dsregcmd /status | Select-String -Pattern "NgcSet|DeviceAuthStatus"',
-    'group_policy': 'gpupdate /force',
     'intune_health': 'dsregcmd /status | Select-String -Pattern "AzureAdJoined|DomainJoined|DeviceId"',
-    'windows_hello': 'dsregcmd /status | Select-String -Pattern "NgcSet|BiometricAvailable"',
-
-    # Advanced Repair
-    'dism_repair': 'DISM /Online /Cleanup-Image /RestoreHealth',
-    'sfc_scan': 'sfc /scannow',
-    'chkdsk': 'chkdsk C: /scan',
-    'complete_repair': 'DISM /Online /Cleanup-Image /RestoreHealth; sfc /scannow',
-    'windows_update_repair': '''
-        Write-Host "=== Stopping Windows Update Services ===" -ForegroundColor Cyan
-        Stop-Service wuauserv -Force -ErrorAction SilentlyContinue
-        Stop-Service cryptSvc -Force -ErrorAction SilentlyContinue
-        Stop-Service bits -Force -ErrorAction SilentlyContinue
-        Write-Host "=== Restarting Windows Update Services ===" -ForegroundColor Cyan
-        Start-Service wuauserv
-        Start-Service cryptSvc
-        Start-Service bits
-        Write-Host "Windows Update services have been reset" -ForegroundColor Green
-    ''',
-    'driver_integrity': 'sfc /verifyonly',
-    'component_cleanup': 'DISM /Online /Cleanup-Image /StartComponentCleanup',
-    'bsod_analysis': '''
-        Write-Host "=== BSOD Crash Dump Analysis ===" -ForegroundColor Cyan
-        $dumpPath = "C:\\Windows\\Minidump"
-        if(Test-Path $dumpPath){
-            Get-ChildItem $dumpPath | Sort-Object LastWriteTime -Descending | Select-Object -First 5 Name, LastWriteTime, Length | Format-Table
-        }else{
-            Write-Host "No crash dumps found"
+    'fix_office': '''
+        Write-Host "=== Quick Fix: Office ===" -ForegroundColor Cyan
+        $officePath = "C:\\Program Files\\Common Files\\Microsoft Shared\\ClickToRun\\OfficeC2RClient.exe"
+        if(Test-Path $officePath){
+            Write-Host "Starting Office Quick Repair..." -ForegroundColor Yellow
+            Start-Process $officePath -ArgumentList "/update user" -Wait
         }
     ''',
-
-    # Laptop & Mobile
-    'battery_health': 'powercfg /batteryreport /output "$env:TEMP\\battery-report.html"; Get-Content "$env:TEMP\\battery-report.html" | Select-String -Pattern "DESIGN CAPACITY|FULL CHARGE CAPACITY|CYCLE COUNT"',
-    'wifi_diagnostics': '''
-        Write-Host "=== Wi-Fi Adapter Status ===" -ForegroundColor Cyan
-        Get-NetAdapter -Name "*Wi-Fi*","*Wireless*" | Select-Object Name, Status, LinkSpeed | Format-Table
-        Write-Host "`n=== Current Wi-Fi Connection ===" -ForegroundColor Cyan
-        netsh wlan show interfaces
+    'fix_onedrive': '''
+        Write-Host "=== Quick Fix: OneDrive ===" -ForegroundColor Cyan
+        Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        Start-Process "$env:LOCALAPPDATA\\Microsoft\\OneDrive\\OneDrive.exe" -ErrorAction SilentlyContinue
+        Write-Host "OneDrive restarted" -ForegroundColor Green
     ''',
-    'vpn_health': '''
-        Write-Host "=== VPN Connections ===" -ForegroundColor Cyan
-        Get-VpnConnection | Select-Object Name, ServerAddress, ConnectionStatus | Format-Table
-        Write-Host "`n=== VPN Adapters ===" -ForegroundColor Cyan
-        Get-NetAdapter | Where-Object {$_.InterfaceDescription -like "*VPN*" -or $_.InterfaceDescription -like "*Tunnel*"} | Format-Table Name, Status
-    ''',
-    'webcam_audio': '''
-        Write-Host "=== Webcam Devices ===" -ForegroundColor Cyan
-        Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue | Select-Object FriendlyName, Status | Format-Table
-        Write-Host "`n=== Audio Devices ===" -ForegroundColor Cyan
-        Get-PnpDevice -Class AudioEndpoint -ErrorAction SilentlyContinue | Select-Object FriendlyName, Status | Format-Table
-    ''',
-    'bitlocker_status': 'Get-BitLockerVolume | Select-Object MountPoint, VolumeStatus, EncryptionPercentage, ProtectionStatus | Format-Table',
-    'power_plans': 'powercfg /list',
-    'docking_station': '''
-        Write-Host "=== USB Hubs (Docking Stations) ===" -ForegroundColor Cyan
-        Get-PnpDevice -Class USB | Where-Object {$_.FriendlyName -like "*Hub*" -or $_.FriendlyName -like "*Dock*"} | Select-Object FriendlyName, Status | Format-Table
-        Write-Host "`n=== Display Adapters ===" -ForegroundColor Cyan
-        Get-PnpDevice -Class Display | Select-Object FriendlyName, Status | Format-Table
-    ''',
-    'bluetooth': '''
-        Write-Host "=== Bluetooth Status ===" -ForegroundColor Cyan
-        Get-PnpDevice -Class Bluetooth -ErrorAction SilentlyContinue | Select-Object FriendlyName, Status | Format-Table
-    ''',
-    'storage_health': 'Get-PhysicalDisk | Select-Object FriendlyName, MediaType, HealthStatus, OperationalStatus, @{N="Size(GB)";E={[math]::Round($_.Size/1GB,2)}} | Format-Table',
-    'thermal_health': '''
-        Write-Host "=== Thermal Zones ===" -ForegroundColor Cyan
-        Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace "root/wmi" -ErrorAction SilentlyContinue |
-            Select-Object InstanceName, @{N="Temperature(C)";E={[math]::Round(($_.CurrentTemperature/10)-273.15,1)}} | Format-Table
-    ''',
-    'travel_readiness': '''
-        Write-Host "=== Travel Readiness Check ===" -ForegroundColor Cyan
-        Write-Host "`n[Battery]" -ForegroundColor Yellow
-        $battery = Get-WmiObject Win32_Battery -ErrorAction SilentlyContinue
-        if($battery){ Write-Host "Battery: $($battery.EstimatedChargeRemaining)% - $($battery.BatteryStatus)" }
-        Write-Host "`n[Wi-Fi]" -ForegroundColor Yellow
-        Get-NetAdapter -Name "*Wi-Fi*" | Select-Object Name, Status
-        Write-Host "`n[VPN]" -ForegroundColor Yellow
-        Get-VpnConnection | Select-Object Name, ConnectionStatus
-    ''',
-
-    # Browser Tools
-    'browser_backup': '''
-        Write-Host "=== Browser Backup ===" -ForegroundColor Cyan
-        $backupPath = "$env:USERPROFILE\\BrowserBackup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-        New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
-
-        # Chrome
-        $chromePath = "$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default"
-        if(Test-Path $chromePath){
-            Copy-Item "$chromePath\\Bookmarks" "$backupPath\\Chrome_Bookmarks.json" -ErrorAction SilentlyContinue
-            Write-Host "Chrome bookmarks backed up" -ForegroundColor Green
-        }
-
-        # Edge
-        $edgePath = "$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default"
-        if(Test-Path $edgePath){
-            Copy-Item "$edgePath\\Bookmarks" "$backupPath\\Edge_Bookmarks.json" -ErrorAction SilentlyContinue
-            Write-Host "Edge bookmarks backed up" -ForegroundColor Green
-        }
-
-        Write-Host "`nBackup location: $backupPath" -ForegroundColor Cyan
-    ''',
-    'browser_restore': 'Write-Host "Browser restore requires selecting a backup folder. Use the Browser Backup tool first." -ForegroundColor Yellow',
-    'browser_cache_clear': '''
-        Write-Host "=== Clearing Browser Caches ===" -ForegroundColor Cyan
-
-        # Chrome Cache
-        $chromeCache = "$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Cache"
-        if(Test-Path $chromeCache){
-            Remove-Item "$chromeCache\\*" -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Host "Chrome cache cleared" -ForegroundColor Green
-        }
-
-        # Edge Cache
-        $edgeCache = "$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Cache"
-        if(Test-Path $edgeCache){
-            Remove-Item "$edgeCache\\*" -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Host "Edge cache cleared" -ForegroundColor Green
-        }
-
-        Write-Host "`nNote: Passwords and autofill data preserved" -ForegroundColor Yellow
-    ''',
-
-    # Common Issues
-    'printer_troubleshoot': '''
-        Write-Host "=== Printer Troubleshooting ===" -ForegroundColor Cyan
-        Get-Printer | Select-Object Name, PrinterStatus, PortName | Format-Table
-        Write-Host "`n=== Print Spooler Service ===" -ForegroundColor Cyan
-        Get-Service Spooler | Select-Object Name, Status, StartType | Format-Table
-    ''',
-    'performance_optimize': '''
-        Write-Host "=== Performance Optimization ===" -ForegroundColor Cyan
-        Write-Host "Clearing temp files..." -ForegroundColor Yellow
-        Remove-Item "$env:TEMP\\*" -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "Temp files cleared" -ForegroundColor Green
-    ''',
-    'search_rebuild': '''
-        Write-Host "=== Rebuilding Windows Search Index ===" -ForegroundColor Cyan
-        Stop-Service WSearch -Force
-        Remove-Item "$env:ProgramData\\Microsoft\\Search\\Data\\Applications\\Windows\\*" -Recurse -Force -ErrorAction SilentlyContinue
-        Start-Service WSearch
-        Write-Host "Search index rebuild initiated" -ForegroundColor Green
+    'fix_teams': '''
+        Write-Host "=== Quick Fix: Teams ===" -ForegroundColor Cyan
+        Stop-Process -Name Teams -Force -ErrorAction SilentlyContinue
+        $teamsCache = "$env:APPDATA\\Microsoft\\Teams\\Cache"
+        Remove-Item "$teamsCache\\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "Teams cache cleared. Please restart Teams manually." -ForegroundColor Green
     ''',
     'fix_outlook_search': '''
         Write-Host "=== Fix Outlook Search ===" -ForegroundColor Cyan
@@ -725,6 +604,237 @@ TOOL_COMMANDS = {
         Write-Host "IMPORTANT: Please restart Outlook." -ForegroundColor Yellow
         Write-Host "The search index will rebuild automatically (may take 15-30 minutes)." -ForegroundColor Yellow
     ''',
+
+    # Security & Encryption
+    'bitlocker_status': '''
+        Write-Host "=== BitLocker Status ===" -ForegroundColor Cyan
+        $volumes = Get-BitLockerVolume -ErrorAction SilentlyContinue
+        if ($volumes) {
+            foreach ($vol in $volumes) {
+                Write-Host "`nDrive: $($vol.MountPoint)" -ForegroundColor Yellow
+                Write-Host "  Volume Status: $($vol.VolumeStatus)"
+                Write-Host "  Protection Status: $($vol.ProtectionStatus)"
+                Write-Host "  Encryption Method: $($vol.EncryptionMethod)"
+                Write-Host "  Encryption Percentage: $($vol.EncryptionPercentage)%"
+                Write-Host "  Lock Status: $($vol.LockStatus)"
+                Write-Host "  Key Protectors: $($vol.KeyProtector.KeyProtectorType -join ', ')"
+            }
+        } else {
+            Write-Host "BitLocker not available or no encrypted volumes found" -ForegroundColor Yellow
+        }
+    ''',
+    'bitlocker_encrypt': '''
+        Write-Host "=== BitLocker Encrypt Drive ===" -ForegroundColor Cyan
+        Write-Host "This will encrypt the system drive and backup recovery key to Azure AD/Entra" -ForegroundColor Yellow
+        Write-Host ""
+
+        # Check if already encrypted
+        $systemDrive = $env:SystemDrive
+        $blv = Get-BitLockerVolume -MountPoint $systemDrive -ErrorAction SilentlyContinue
+
+        if ($blv.ProtectionStatus -eq "On") {
+            Write-Host "Drive $systemDrive is already encrypted with BitLocker" -ForegroundColor Green
+            Write-Host "Protection Status: $($blv.ProtectionStatus)"
+            Write-Host "Encryption Percentage: $($blv.EncryptionPercentage)%"
+            return
+        }
+
+        # Check Azure AD join status
+        Write-Host "Checking Azure AD / Entra join status..." -ForegroundColor Yellow
+        $dsregStatus = dsregcmd /status
+        $isAzureADJoined = $dsregStatus | Select-String "AzureAdJoined\s*:\s*YES"
+
+        if (-not $isAzureADJoined) {
+            Write-Host "WARNING: Device is not Azure AD / Entra joined!" -ForegroundColor Red
+            Write-Host "Recovery key backup to Azure/Entra requires the device to be joined." -ForegroundColor Yellow
+            Write-Host "Please join the device to Azure AD first, or use a different backup method." -ForegroundColor Yellow
+            return
+        }
+
+        Write-Host "Device is Azure AD / Entra joined - proceeding with encryption" -ForegroundColor Green
+
+        try {
+            # Enable BitLocker with TPM protector
+            Write-Host "`nStep 1: Adding TPM protector..." -ForegroundColor Yellow
+            Add-BitLockerKeyProtector -MountPoint $systemDrive -TpmProtector -ErrorAction Stop
+            Write-Host "  TPM protector added" -ForegroundColor Green
+
+            # Add Recovery Password protector
+            Write-Host "`nStep 2: Adding Recovery Password protector..." -ForegroundColor Yellow
+            $recoveryProtector = Add-BitLockerKeyProtector -MountPoint $systemDrive -RecoveryPasswordProtector -ErrorAction Stop
+            Write-Host "  Recovery password protector added" -ForegroundColor Green
+
+            # Backup to Azure AD
+            Write-Host "`nStep 3: Backing up recovery key to Azure AD / Entra..." -ForegroundColor Yellow
+            $keyProtectorId = (Get-BitLockerVolume -MountPoint $systemDrive).KeyProtector | Where-Object {$_.KeyProtectorType -eq "RecoveryPassword"} | Select-Object -ExpandProperty KeyProtectorId
+
+            BackupToAAD-BitLockerKeyProtector -MountPoint $systemDrive -KeyProtectorId $keyProtectorId -ErrorAction Stop
+            Write-Host "  Recovery key backed up to Azure AD / Entra successfully!" -ForegroundColor Green
+
+            # Start encryption
+            Write-Host "`nStep 4: Starting encryption..." -ForegroundColor Yellow
+            Enable-BitLocker -MountPoint $systemDrive -EncryptionMethod XtsAes256 -UsedSpaceOnly -ErrorAction Stop
+            Write-Host "  Encryption started" -ForegroundColor Green
+
+            Write-Host "`n=== BitLocker Encryption Initiated ===" -ForegroundColor Cyan
+            Write-Host "Recovery key has been backed up to Azure AD / Entra" -ForegroundColor Green
+            Write-Host "Encryption is running in the background" -ForegroundColor Yellow
+            Write-Host "A restart may be required to complete encryption" -ForegroundColor Yellow
+
+        } catch {
+            Write-Host "`nError during BitLocker encryption: $_" -ForegroundColor Red
+            Write-Host "Please ensure:" -ForegroundColor Yellow
+            Write-Host "  1. TPM is enabled and ready" -ForegroundColor Yellow
+            Write-Host "  2. You have administrator privileges" -ForegroundColor Yellow
+            Write-Host "  3. Device is Azure AD joined" -ForegroundColor Yellow
+        }
+    ''',
+    'bitlocker_decrypt': '''
+        Write-Host "=== BitLocker Decrypt Drive ===" -ForegroundColor Cyan
+        Write-Host "WARNING: This will remove BitLocker encryption from the drive!" -ForegroundColor Red
+        Write-Host ""
+
+        $systemDrive = $env:SystemDrive
+        $blv = Get-BitLockerVolume -MountPoint $systemDrive -ErrorAction SilentlyContinue
+
+        if (-not $blv) {
+            Write-Host "BitLocker information not available for $systemDrive" -ForegroundColor Yellow
+            return
+        }
+
+        if ($blv.ProtectionStatus -eq "Off" -and $blv.VolumeStatus -eq "FullyDecrypted") {
+            Write-Host "Drive $systemDrive is not encrypted with BitLocker" -ForegroundColor Yellow
+            return
+        }
+
+        Write-Host "Current Status:" -ForegroundColor Yellow
+        Write-Host "  Drive: $systemDrive"
+        Write-Host "  Protection Status: $($blv.ProtectionStatus)"
+        Write-Host "  Volume Status: $($blv.VolumeStatus)"
+        Write-Host "  Encryption Percentage: $($blv.EncryptionPercentage)%"
+        Write-Host ""
+
+        try {
+            # Disable BitLocker protection first
+            Write-Host "Step 1: Disabling BitLocker protection..." -ForegroundColor Yellow
+            Disable-BitLocker -MountPoint $systemDrive -ErrorAction Stop
+
+            Write-Host "`n=== BitLocker Decryption Started ===" -ForegroundColor Cyan
+            Write-Host "Decryption is running in the background" -ForegroundColor Yellow
+            Write-Host "This process may take a while depending on drive size" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "You can check progress with 'BitLocker Status' tool" -ForegroundColor White
+
+            # Show initial progress
+            Start-Sleep -Seconds 2
+            $blvNew = Get-BitLockerVolume -MountPoint $systemDrive
+            Write-Host "`nCurrent decryption progress: $($blvNew.EncryptionPercentage)% remaining" -ForegroundColor Yellow
+
+        } catch {
+            Write-Host "`nError during BitLocker decryption: $_" -ForegroundColor Red
+            Write-Host "Please ensure you have administrator privileges" -ForegroundColor Yellow
+        }
+    ''',
+    'credential_manager': 'cmdkey /list',
+    'mfa_status': 'dsregcmd /status | Select-String -Pattern "NgcSet|DeviceAuthStatus"',
+    'windows_hello': 'dsregcmd /status | Select-String -Pattern "NgcSet|BiometricAvailable"',
+
+    # Advanced Repair
+    'dism_repair': 'DISM /Online /Cleanup-Image /RestoreHealth',
+    'sfc_scan': 'sfc /scannow',
+    'chkdsk': 'chkdsk C: /scan',
+    'complete_repair': 'DISM /Online /Cleanup-Image /RestoreHealth; sfc /scannow',
+    'windows_update_repair': '''
+        Write-Host "=== Stopping Windows Update Services ===" -ForegroundColor Cyan
+        Stop-Service wuauserv -Force -ErrorAction SilentlyContinue
+        Stop-Service cryptSvc -Force -ErrorAction SilentlyContinue
+        Stop-Service bits -Force -ErrorAction SilentlyContinue
+        Write-Host "=== Restarting Windows Update Services ===" -ForegroundColor Cyan
+        Start-Service wuauserv
+        Start-Service cryptSvc
+        Start-Service bits
+        Write-Host "Windows Update services have been reset" -ForegroundColor Green
+    ''',
+    'driver_integrity': 'sfc /verifyonly',
+    'component_cleanup': 'DISM /Online /Cleanup-Image /StartComponentCleanup',
+    'bsod_analysis': '''
+        Write-Host "=== BSOD Crash Dump Analysis ===" -ForegroundColor Cyan
+        $dumpPath = "C:\\Windows\\Minidump"
+        if(Test-Path $dumpPath){
+            Get-ChildItem $dumpPath | Sort-Object LastWriteTime -Descending | Select-Object -First 5 Name, LastWriteTime, Length | Format-Table
+        }else{
+            Write-Host "No crash dumps found"
+        }
+    ''',
+    'search_rebuild': '''
+        Write-Host "=== Rebuilding Windows Search Index ===" -ForegroundColor Cyan
+        Stop-Service WSearch -Force
+        Remove-Item "$env:ProgramData\\Microsoft\\Search\\Data\\Applications\\Windows\\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Start-Service WSearch
+        Write-Host "Search index rebuild initiated" -ForegroundColor Green
+    ''',
+
+    # Laptop & Mobile
+    'battery_health': 'powercfg /batteryreport /output "$env:TEMP\\battery-report.html"; Get-Content "$env:TEMP\\battery-report.html" | Select-String -Pattern "DESIGN CAPACITY|FULL CHARGE CAPACITY|CYCLE COUNT"',
+    'wifi_diagnostics': '''
+        Write-Host "=== Wi-Fi Adapter Status ===" -ForegroundColor Cyan
+        Get-NetAdapter -Name "*Wi-Fi*","*Wireless*" | Select-Object Name, Status, LinkSpeed | Format-Table
+        Write-Host "`n=== Current Wi-Fi Connection ===" -ForegroundColor Cyan
+        netsh wlan show interfaces
+    ''',
+    'vpn_health': '''
+        Write-Host "=== VPN Connections ===" -ForegroundColor Cyan
+        Get-VpnConnection | Select-Object Name, ServerAddress, ConnectionStatus | Format-Table
+        Write-Host "`n=== VPN Adapters ===" -ForegroundColor Cyan
+        Get-NetAdapter | Where-Object {$_.InterfaceDescription -like "*VPN*" -or $_.InterfaceDescription -like "*Tunnel*"} | Format-Table Name, Status
+    ''',
+    'webcam_audio': '''
+        Write-Host "=== Webcam Devices ===" -ForegroundColor Cyan
+        Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue | Select-Object FriendlyName, Status | Format-Table
+        Write-Host "`n=== Audio Devices ===" -ForegroundColor Cyan
+        Get-PnpDevice -Class AudioEndpoint -ErrorAction SilentlyContinue | Select-Object FriendlyName, Status | Format-Table
+    ''',
+    'power_plans': 'powercfg /list',
+    'docking_station': '''
+        Write-Host "=== USB Hubs (Docking Stations) ===" -ForegroundColor Cyan
+        Get-PnpDevice -Class USB | Where-Object {$_.FriendlyName -like "*Hub*" -or $_.FriendlyName -like "*Dock*"} | Select-Object FriendlyName, Status | Format-Table
+        Write-Host "`n=== Display Adapters ===" -ForegroundColor Cyan
+        Get-PnpDevice -Class Display | Select-Object FriendlyName, Status | Format-Table
+    ''',
+    'bluetooth': '''
+        Write-Host "=== Bluetooth Status ===" -ForegroundColor Cyan
+        Get-PnpDevice -Class Bluetooth -ErrorAction SilentlyContinue | Select-Object FriendlyName, Status | Format-Table
+    ''',
+    'storage_health': 'Get-PhysicalDisk | Select-Object FriendlyName, MediaType, HealthStatus, OperationalStatus, @{N="Size(GB)";E={[math]::Round($_.Size/1GB,2)}} | Format-Table',
+    'thermal_health': '''
+        Write-Host "=== Thermal Zones ===" -ForegroundColor Cyan
+        Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace "root/wmi" -ErrorAction SilentlyContinue |
+            Select-Object InstanceName, @{N="Temperature(C)";E={[math]::Round(($_.CurrentTemperature/10)-273.15,1)}} | Format-Table
+    ''',
+    'travel_readiness': '''
+        Write-Host "=== Travel Readiness Check ===" -ForegroundColor Cyan
+        Write-Host "`n[Battery]" -ForegroundColor Yellow
+        $battery = Get-WmiObject Win32_Battery -ErrorAction SilentlyContinue
+        if($battery){ Write-Host "Battery: $($battery.EstimatedChargeRemaining)% - $($battery.BatteryStatus)" }
+        Write-Host "`n[Wi-Fi]" -ForegroundColor Yellow
+        Get-NetAdapter -Name "*Wi-Fi*" | Select-Object Name, Status
+        Write-Host "`n[VPN]" -ForegroundColor Yellow
+        Get-VpnConnection | Select-Object Name, ConnectionStatus
+    ''',
+
+    # Common Issues & Quick Fixes
+    'printer_troubleshoot': '''
+        Write-Host "=== Printer Troubleshooting ===" -ForegroundColor Cyan
+        Get-Printer | Select-Object Name, PrinterStatus, PortName | Format-Table
+        Write-Host "`n=== Print Spooler Service ===" -ForegroundColor Cyan
+        Get-Service Spooler | Select-Object Name, Status, StartType | Format-Table
+    ''',
+    'performance_optimize': '''
+        Write-Host "=== Performance Optimization ===" -ForegroundColor Cyan
+        Write-Host "Clearing temp files..." -ForegroundColor Yellow
+        Remove-Item "$env:TEMP\\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "Temp files cleared" -ForegroundColor Green
+    ''',
     'start_menu_repair': '''
         Write-Host "=== Start Menu Repair ===" -ForegroundColor Cyan
         Get-AppXPackage -AllUsers | Where-Object {$_.Name -like "*StartMenu*" -or $_.Name -like "*ShellExperienceHost*"} |
@@ -736,6 +846,13 @@ TOOL_COMMANDS = {
         Get-PnpDevice -Class AudioEndpoint | Select-Object FriendlyName, Status | Format-Table
         Write-Host "`n=== Audio Services ===" -ForegroundColor Cyan
         Get-Service AudioSrv, AudioEndpointBuilder | Select-Object Name, Status | Format-Table
+    ''',
+    'fix_av': '''
+        Write-Host "=== Quick Fix: Audio/Video ===" -ForegroundColor Cyan
+        Restart-Service AudioSrv -Force -ErrorAction SilentlyContinue
+        Write-Host "Audio service restarted" -ForegroundColor Green
+        Get-PnpDevice -Class Camera | Enable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue
+        Write-Host "Camera devices re-enabled" -ForegroundColor Green
     ''',
     'explorer_reset': '''
         Write-Host "=== Restarting Windows Explorer ===" -ForegroundColor Cyan
@@ -763,30 +880,6 @@ TOOL_COMMANDS = {
         $tempSize = (Get-ChildItem $env:TEMP -Recurse -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum / 1MB
         Write-Host "Temp folder size: $([math]::Round($tempSize, 2)) MB"
     ''',
-
-    # Quick Fixes
-    'fix_office': '''
-        Write-Host "=== Quick Fix: Office ===" -ForegroundColor Cyan
-        $officePath = "C:\\Program Files\\Common Files\\Microsoft Shared\\ClickToRun\\OfficeC2RClient.exe"
-        if(Test-Path $officePath){
-            Write-Host "Starting Office Quick Repair..." -ForegroundColor Yellow
-            Start-Process $officePath -ArgumentList "/update user" -Wait
-        }
-    ''',
-    'fix_onedrive': '''
-        Write-Host "=== Quick Fix: OneDrive ===" -ForegroundColor Cyan
-        Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-        Start-Process "$env:LOCALAPPDATA\\Microsoft\\OneDrive\\OneDrive.exe" -ErrorAction SilentlyContinue
-        Write-Host "OneDrive restarted" -ForegroundColor Green
-    ''',
-    'fix_teams': '''
-        Write-Host "=== Quick Fix: Teams ===" -ForegroundColor Cyan
-        Stop-Process -Name Teams -Force -ErrorAction SilentlyContinue
-        $teamsCache = "$env:APPDATA\\Microsoft\\Teams\\Cache"
-        Remove-Item "$teamsCache\\*" -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "Teams cache cleared. Please restart Teams manually." -ForegroundColor Green
-    ''',
     'fix_login': '''
         Write-Host "=== Quick Fix: Login Issues ===" -ForegroundColor Cyan
         dsregcmd /status | Select-String -Pattern "AzureAdJoined|DomainJoined"
@@ -804,13 +897,6 @@ TOOL_COMMANDS = {
         Write-Host "=== Quick Fix: VPN ===" -ForegroundColor Cyan
         Get-VpnConnection | ForEach-Object { rasdial $_.Name /disconnect 2>$null }
         Write-Host "VPN connections reset" -ForegroundColor Green
-    ''',
-    'fix_av': '''
-        Write-Host "=== Quick Fix: Audio/Video ===" -ForegroundColor Cyan
-        Restart-Service AudioSrv -Force -ErrorAction SilentlyContinue
-        Write-Host "Audio service restarted" -ForegroundColor Green
-        Get-PnpDevice -Class Camera | Enable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue
-        Write-Host "Camera devices re-enabled" -ForegroundColor Green
     ''',
     'fix_dock': '''
         Write-Host "=== Quick Fix: Docking Station ===" -ForegroundColor Cyan
@@ -830,6 +916,50 @@ TOOL_COMMANDS = {
         Write-Host "=== Domain Trust Repair ===" -ForegroundColor Cyan
         Test-ComputerSecureChannel -Verbose
         Write-Host "`nIf trust is broken, run: Test-ComputerSecureChannel -Repair -Credential (Get-Credential)" -ForegroundColor Yellow
+    ''',
+    'group_policy': 'gpupdate /force',
+
+    # Browser Tools
+    'browser_backup': '''
+        Write-Host "=== Browser Backup ===" -ForegroundColor Cyan
+        $backupPath = "$env:USERPROFILE\\BrowserBackup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+        New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
+
+        # Chrome
+        $chromePath = "$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default"
+        if(Test-Path $chromePath){
+            Copy-Item "$chromePath\\Bookmarks" "$backupPath\\Chrome_Bookmarks.json" -ErrorAction SilentlyContinue
+            Write-Host "Chrome bookmarks backed up" -ForegroundColor Green
+        }
+
+        # Edge
+        $edgePath = "$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default"
+        if(Test-Path $edgePath){
+            Copy-Item "$edgePath\\Bookmarks" "$backupPath\\Edge_Bookmarks.json" -ErrorAction SilentlyContinue
+            Write-Host "Edge bookmarks backed up" -ForegroundColor Green
+        }
+
+        Write-Host "`nBackup location: $backupPath" -ForegroundColor Cyan
+    ''',
+    'browser_restore': 'Write-Host "Browser restore requires selecting a backup folder. Use the Browser Backup tool first." -ForegroundColor Yellow',
+    'browser_cache_clear': '''
+        Write-Host "=== Clearing Browser Caches ===" -ForegroundColor Cyan
+
+        # Chrome Cache
+        $chromeCache = "$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Cache"
+        if(Test-Path $chromeCache){
+            Remove-Item "$chromeCache\\*" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Chrome cache cleared" -ForegroundColor Green
+        }
+
+        # Edge Cache
+        $edgeCache = "$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Cache"
+        if(Test-Path $edgeCache){
+            Remove-Item "$edgeCache\\*" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Edge cache cleared" -ForegroundColor Green
+        }
+
+        Write-Host "`nNote: Passwords and autofill data preserved" -ForegroundColor Yellow
     ''',
 
     # IT Administration Tools (use WMI - works without WinRM)
@@ -1235,7 +1365,7 @@ if __name__ == '__main__':
     print(f"""
     ╔══════════════════════════════════════════════════════════════╗
     ║           NMM System Toolkit - Web Intranet Edition          ║
-    ║                      Version {CONFIG['VERSION']}                         ║
+    ║                      Version {CONFIG['VERSION']}                           ║
     ╠══════════════════════════════════════════════════════════════╣
     ║  Starting web server...                                      ║
     ║  Access the toolkit at: http://localhost:5000                ║
