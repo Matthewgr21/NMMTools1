@@ -224,6 +224,7 @@ TOOL_CATEGORIES = {
             {'id': 'printer_troubleshoot', 'name': 'Printer Troubleshooting', 'description': 'Fix common printer issues', 'admin_required': False},
             {'id': 'performance_optimize', 'name': 'Performance Optimization', 'description': 'Optimize system performance', 'admin_required': False},
             {'id': 'search_rebuild', 'name': 'Windows Search Rebuild', 'description': 'Rebuild Windows Search index', 'admin_required': True},
+            {'id': 'fix_outlook_search', 'name': 'Fix Outlook Search', 'description': 'Repair Outlook search by rebuilding index and resetting search folders', 'admin_required': True},
             {'id': 'start_menu_repair', 'name': 'Start Menu Repair', 'description': 'Fix Start Menu and Taskbar issues', 'admin_required': False},
             {'id': 'audio_troubleshoot', 'name': 'Audio Troubleshooting', 'description': 'Advanced audio device fixes', 'admin_required': False},
             {'id': 'explorer_reset', 'name': 'Windows Explorer Reset', 'description': 'Reset Windows Explorer shell', 'admin_required': False},
@@ -605,6 +606,124 @@ TOOL_COMMANDS = {
         Remove-Item "$env:ProgramData\\Microsoft\\Search\\Data\\Applications\\Windows\\*" -Recurse -Force -ErrorAction SilentlyContinue
         Start-Service WSearch
         Write-Host "Search index rebuild initiated" -ForegroundColor Green
+    ''',
+    'fix_outlook_search': '''
+        Write-Host "=== Fix Outlook Search ===" -ForegroundColor Cyan
+        Write-Host "This tool will repair Outlook search functionality" -ForegroundColor White
+        Write-Host ""
+
+        # Create log directory
+        $LogPath = "$env:ProgramData\\OutlookSearchFix"
+        if (-not (Test-Path $LogPath)) {
+            New-Item -Path $LogPath -ItemType Directory -Force | Out-Null
+        }
+        $LogFile = Join-Path $LogPath "OutlookSearchFix_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+
+        function Write-Log {
+            param([string]$Message, [string]$Color = "White")
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+            "$timestamp - $Message" | Out-File -FilePath $LogFile -Append
+            Write-Host $Message -ForegroundColor $Color
+        }
+
+        # Step 1: Close Outlook
+        Write-Log "Step 1: Closing Outlook..." "Yellow"
+        $outlook = Get-Process -Name "OUTLOOK" -ErrorAction SilentlyContinue
+        if ($outlook) {
+            Write-Log "  Outlook is running. Attempting graceful shutdown..." "White"
+            try {
+                $outlookApp = [Runtime.InteropServices.Marshal]::GetActiveObject("Outlook.Application")
+                $outlookApp.Quit()
+                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($outlookApp) | Out-Null
+                Start-Sleep -Seconds 3
+            } catch {
+                Write-Log "  Graceful shutdown failed. Force closing Outlook..." "Yellow"
+            }
+
+            # Force close if still running
+            $outlook = Get-Process -Name "OUTLOOK" -ErrorAction SilentlyContinue
+            if ($outlook) {
+                Stop-Process -Name "OUTLOOK" -Force -ErrorAction SilentlyContinue
+                Start-Sleep -Seconds 2
+            }
+            Write-Log "  Outlook closed successfully" "Green"
+        } else {
+            Write-Log "  Outlook is not running" "White"
+        }
+
+        # Step 2: Restart Windows Search Service
+        Write-Log "Step 2: Restarting Windows Search Service..." "Yellow"
+        try {
+            Stop-Service -Name "WSearch" -Force -ErrorAction Stop
+            Start-Sleep -Seconds 2
+            Start-Service -Name "WSearch" -ErrorAction Stop
+            Write-Log "  Windows Search service restarted" "Green"
+        } catch {
+            Write-Log "  Warning: Could not restart Windows Search service: $_" "Red"
+        }
+
+        # Step 3: Rebuild Search Index (rename Windows.edb)
+        Write-Log "Step 3: Rebuilding Search Index..." "Yellow"
+        $searchDataPath = "$env:ProgramData\\Microsoft\\Search\\Data\\Applications\\Windows"
+        $edbPath = Join-Path $searchDataPath "Windows.edb"
+
+        if (Test-Path $edbPath) {
+            try {
+                # Stop search service to release file lock
+                Stop-Service -Name "WSearch" -Force -ErrorAction SilentlyContinue
+                Start-Sleep -Seconds 2
+
+                # Rename the index file (forces rebuild)
+                $backupName = "Windows_backup_$(Get-Date -Format 'yyyyMMdd_HHmmss').edb"
+                Rename-Item -Path $edbPath -NewName $backupName -Force -ErrorAction Stop
+                Write-Log "  Search index renamed to $backupName" "Green"
+                Write-Log "  A new index will be rebuilt automatically" "Green"
+
+                # Restart search service
+                Start-Service -Name "WSearch" -ErrorAction SilentlyContinue
+            } catch {
+                Write-Log "  Warning: Could not rename search index: $_" "Red"
+                Start-Service -Name "WSearch" -ErrorAction SilentlyContinue
+            }
+        } else {
+            Write-Log "  Search index file not found (may already be clean)" "Yellow"
+        }
+
+        # Step 4: Reset Outlook Search Folders (Finders)
+        Write-Log "Step 4: Resetting Outlook Search Folders..." "Yellow"
+        $outlookProfiles = Get-ChildItem "HKCU:\\Software\\Microsoft\\Office\\*\\Outlook\\Profiles" -ErrorAction SilentlyContinue
+
+        foreach ($profile in $outlookProfiles) {
+            try {
+                $findersPath = Join-Path $profile.PSPath "Finders"
+                if (Test-Path $findersPath) {
+                    Remove-Item -Path $findersPath -Recurse -Force -ErrorAction SilentlyContinue
+                    Write-Log "  Cleared search folders for profile: $($profile.PSChildName)" "Green"
+                }
+            } catch {
+                Write-Log "  Warning: Could not clear search folders: $_" "Yellow"
+            }
+        }
+
+        # Step 5: Clear Outlook Search Catalog Key
+        Write-Log "Step 5: Resetting Outlook Search Catalog..." "Yellow"
+        try {
+            $searchKey = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Search"
+            if (Test-Path $searchKey) {
+                Remove-ItemProperty -Path $searchKey -Name "LastCatalogCookie" -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $searchKey -Name "CatalogCookie" -ErrorAction SilentlyContinue
+                Write-Log "  Outlook search catalog reset" "Green"
+            }
+        } catch {
+            Write-Log "  Warning: Could not reset catalog: $_" "Yellow"
+        }
+
+        Write-Host ""
+        Write-Log "=== Outlook Search Fix Complete ===" "Cyan"
+        Write-Log "Log saved to: $LogFile" "White"
+        Write-Host ""
+        Write-Host "IMPORTANT: Please restart Outlook." -ForegroundColor Yellow
+        Write-Host "The search index will rebuild automatically (may take 15-30 minutes)." -ForegroundColor Yellow
     ''',
     'start_menu_repair': '''
         Write-Host "=== Start Menu Repair ===" -ForegroundColor Cyan
