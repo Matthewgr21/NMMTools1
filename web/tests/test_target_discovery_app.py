@@ -42,18 +42,18 @@ class TargetDiscoveryAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.get_json()["success"])
 
-    @patch.object(target_discovery_app.discovery, "discover")
-    def test_returns_discovery_result(self, discover):
-        discover.return_value = {
-            "target": "lt-0482",
-            "dns_resolved": True,
-            "winrm_available": True,
-            "interactive_user": r"DOMAIN\jsmith",
-        }
-        response = self.client.post(
-            "/api/target-status",
-            json={"target_host": "LT-0482"},
-        )
+    def test_returns_discovery_result(self):
+        with patch.object(target_discovery_app.discovery, "discover") as discover:
+            discover.return_value = {
+                "target": "lt-0482",
+                "dns_resolved": True,
+                "winrm_available": True,
+                "interactive_user": r"DOMAIN\jsmith",
+            }
+            response = self.client.post(
+                "/api/target-status",
+                json={"target_host": "LT-0482"},
+            )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.get_json()["success"])
 
