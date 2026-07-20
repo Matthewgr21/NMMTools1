@@ -1,13 +1,13 @@
 # Remote Target Framework
 
-This milestone adds reusable, read-only target discovery and safe remote execution to the NMMTools web interface.
+This milestone adds reusable, read-only target discovery plus execution-building helpers. The working prototype is standalone and does not execute NMMTools repair commands.
 
 ## Operator workflow
 
 1. Enter a Windows computer name or FQDN.
 2. Select **Check connection**.
 3. Review DNS, reachability, WinRM, and logged-on-user results.
-4. Run the selected tool only after the target passes the required preflight.
+4. Use the result to confirm whether the device is ready for a future registered diagnostic. No tool is launched by this prototype.
 
 Remote IP addresses are intentionally rejected. Domain computer names allow PowerShell remoting to use Kerberos without adding arbitrary addresses to WinRM TrustedHosts.
 
@@ -37,10 +37,7 @@ ICMP failure alone does not mark a computer unavailable. WinRM is tested separat
 
 ## Current execution contexts
 
-This milestone detects the interactive user but does not impersonate that user. Existing tools continue to run:
-
-- locally in the NMMTools server context; or
-- remotely in the authenticated administrative WinRM context.
+This milestone detects the interactive user but does not impersonate that user and does not integrate with the existing portal execution routes. The result reports whether a future diagnostic could use local or remote-administrator context.
 
 A later Business Applications milestone can use the returned user SID with a signed endpoint runner for explicitly registered user-profile operations. It should never expose arbitrary remote PowerShell.
 
@@ -54,6 +51,10 @@ From the `web` directory:
 
 ```powershell
 python -m unittest discover -s tests -v
+python -m py_compile targeting.py target_discovery_app.py
+.\Start-TargetDiscovery.ps1
 ```
 
-The tests use mocked DNS and management probes, so they can run without contacting production endpoints.
+Open `http://127.0.0.1:5001` on the same workstation. The service rejects requests from other devices.
+
+The core tests use mocked DNS and management probes, so they can run without contacting production endpoints. Flask route tests require the dependencies in `requirements.txt`.
