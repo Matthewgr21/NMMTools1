@@ -8,9 +8,15 @@ from unittest.mock import patch
 WEB_ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WEB_ROOT))
 
-import target_discovery_app  # noqa: E402
+try:
+    import flask  # noqa: F401
+except ImportError:
+    target_discovery_app = None
+else:
+    import target_discovery_app  # noqa: E402
 
 
+@unittest.skipIf(target_discovery_app is None, "Flask is not installed")
 class TargetDiscoveryAppTests(unittest.TestCase):
     def setUp(self):
         target_discovery_app.app.config.update(TESTING=True)
